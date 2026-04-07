@@ -16,10 +16,10 @@ At first glance, that’s exactly what the 2020 data showed. The home advantage 
 
 Not exactly. As it turns out, jumping to that conclusion was a massive statistical trap.
 
-> *The Illusion: In the 2012-2019 baseline (Top), home teams enjoyed a distinct free-kick advantage. In the 2020 hub season (Bottom), the distributions converged, heavily implying that the removal of crowds eliminated umpire bias.*
+> *The Illusion: In the 2012-2019 baseline, home teams enjoyed a distinct free-kick advantage — the distribution peaks meaningfully to the right of zero. In the 2020 hub season, the distributions converge, heavily implying that the removal of crowds eliminated umpire bias.*
 
-![Baseline Free Kick Density](figure_baseline_density.png)
-![2020 Free Kick Density](figure_covid_density.png)
+![Baseline Free Kick Differential Distribution](figure_fk_baseline_density.png)
+![Baseline vs 2020 Free Kick Differential Convergence](figure_fk_covid_density.png)
 
 ---
 
