@@ -1,0 +1,67 @@
+# -----------------------------------------------
+# Python
+# -----------------------------------------------
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pyc
+
+# -----------------------------------------------
+# Environment & Secrets
+# -----------------------------------------------
+.env
+.env.*
+*.env
+
+# -----------------------------------------------
+# Virtual environments
+# -----------------------------------------------
+.venv/
+venv/
+env/
+ENV/
+
+# -----------------------------------------------
+# AFL Cache
+# Raw scraped pages are NOT committed (~1,800 files).
+# The parser saves them WITHOUT a .html extension
+# (dots are normalised to underscores), so the
+# patterns below target the actual filenames.
+# The optimised Parquet panel (~0.1 MB) IS committed
+# so collaborators can run EDA scripts without re-scraping.
+# -----------------------------------------------
+afl_cache/match_*
+afl_cache/season_*
+# Explicitly allow the panel cache
+!afl_cache/raw_panel.parquet
+
+# -----------------------------------------------
+# Working / debug output files
+# -----------------------------------------------
+alignment_check.txt
+fuzzy_output.txt
+index_debug.txt
+index_debug_utf8.txt
+inspect.txt
+match_diag.txt
+model4-5-out.log
+model4-5_output.txt
+nested_check.txt
+run.log
+venues.txt
+
+# -----------------------------------------------
+# OS artefacts
+# -----------------------------------------------
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# -----------------------------------------------
+# IDEs & Editors
+# -----------------------------------------------
+.vscode/
+.idea/
+*.swp
+*.swo
