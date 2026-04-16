@@ -8,8 +8,6 @@ Why do home teams consistently receive favourable penalty differentials in profe
 
 The 2020 AFL season provides a rare natural experiment to isolate this mechanism. Lockdowns forced the league into isolated hubs, and stadiums went completely quiet. If the crowd drives umpire bias, removing the crowd should flatten the free-kick differential. 
 
-![Baseline vs 2020 Free Kick Differential Convergence](figure_fk_covid_density.png)
-
 Our contribution in this paper is threefold. First, we develop a novel continuous treatment metric—the Net Partisan Hostility Index (EPI)—to resolve the severe endogeneity present in raw attendance figures. Second, utilizing a Fuzzy Difference-in-Differences (DiD) framework, we demonstrate that umpires are remarkably resilient to crowd pressure; the crowd pressure coefficient is statistically dead across all model specifications. Third, we show that the observed convergence in 2020 free-kick differentials was driven not by referee psychology, but by athlete physiology. We document a massive structural collapse in dynamic gameplay—what we term "Trench Warfare"—caused by the democratised fatigue of the hub season. 
 
 We structure the rest of the paper as follows. Section 2 presents a motivating example of the free-kick convergence. Section 3 details our study data and the construction of our indices. Section 4 outlines the empirical strategy. Section 5 presents our main econometric results on umpire bias, and Section 6 investigates the physiological mechanisms driving the statistical anomaly. Section 7 concludes.
@@ -17,6 +15,8 @@ We structure the rest of the paper as follows. Section 2 presents a motivating e
 ## 2. Motivating Example
 
 Consider a naive pre/post comparison of free-kick differentials. In the 2012-2019 baseline, home teams enjoyed a distinct free-kick advantage, with the distribution peaking meaningfully to the right of zero. In the 2020 hub season, the home and away distributions converge. At first glance, the plummeting home advantage heavily implies that the removal of crowds eliminated umpire bias. 
+
+![Baseline vs 2020 Free Kick Differential Convergence](figure_fk_covid_density.png)
 
 To see why this conclusion is a statistical trap, consider the "Away Fan Fallacy". If the Western Bulldogs host Collingwood at Marvel Stadium, raw attendance numbers simulate a massive home-ground advantage, despite Collingwood fans likely taking over the building. Conversely, a 50/50 split at the MCG presents a completely different psychological environment compared to a locked-out, hostile Friday night Showdown at Adelaide Oval. Treating attendance as a single, uniform metric produces garbage-in, garbage-out models. 
 
