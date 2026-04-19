@@ -405,6 +405,130 @@ def task3_tackle_rate_reconciliation(df: pd.DataFrame,
 
 
 # ---------------------------------------------------------------------------
+# Task 4 - Residualized EPI Stratification
+# ---------------------------------------------------------------------------
+
+def task4_residualized_stratification(df: pd.DataFrame,
+                                      out_path: str = "figure_residualized_stratification.png") -> None:
+    print(f"\n{SEP}")
+    print("  TASK 4 - Residualized EPI Stratification")
+    print(f"{SEP}")
+    print(
+        "  H0: If the raw divergence in Top/Bottom 25% is just an artifact of baseline \n"
+        "  team strength, removing the Directed Team-Pair Fixed Effects will cause \n"
+        "  the stratification to perfectly collapse along zero.\n"
+    )
+
+    from afl_noise_affirmation_did import build_panel
+    from linearmodels.panel import PanelOLS
+
+    # Build the panel with directed matchup ID
+    panel = build_panel(df, entity_col="matchup_directed_id")
+
+    # Fit the pure Entity-FE model on the PRE-2020 baseline
+    pre2020_panel = panel[panel.index.get_level_values("season") < 2020].copy()
+    
+    # Model: home_fk_diff ~ 1 + EntityEffects (drop_absorbed doesn't matter here)
+    mod = PanelOLS.from_formula("home_fk_diff ~ 1 + EntityEffects", data=pre2020_panel)
+    res = mod.fit()
+    
+    # Extract the estimated fixed effects (baseline strength of each matchup)
+    fe_df = res.estimated_effects.reset_index()
+    fe_map = fe_df.groupby("matchup_directed_id")["estimated_effects"].mean().to_dict()
+
+    # Subtract these FE baseline strengths from the FULL panel (including 2020)
+    df_resid = df.copy()
+    df_resid["baseline_fe"] = df_resid["matchup_directed_id"].map(fe_map)
+    
+    # Drop rows without a baseline history
+    df_resid = df_resid.dropna(subset=["baseline_fe"]).copy()
+    
+    # Also subtract the global intercept (overall baseline home advantage)
+    baseline_intercept = res.params["Intercept"]
+    df_resid["home_fk_diff_resid"] = df_resid["home_fk_diff"] - df_resid["baseline_fe"] - baseline_intercept
+
+    # Assign EPI quartiles based on pre-2020 distribution
+    pre2020_mask = df_resid["season"] < 2020
+    q25 = df_resid.loc[pre2020_mask, "epi_raw"].quantile(0.25)
+    q75 = df_resid.loc[pre2020_mask, "epi_raw"].quantile(0.75)
+
+    def _epi_group(row):
+        if row["epi_raw"] >= q75:
+            return "Top 25%\n(Most Hostile)"
+        elif row["epi_raw"] <= q25:
+            return "Bottom 25%\n(Least Hostile)"
+        return None
+
+    df_resid["epi_group"] = df_resid.apply(_epi_group, axis=1)
+    stratified = df_resid[df_resid["epi_group"].notna()].copy()
+
+    season_means = (
+        stratified
+        .groupby(["season", "epi_group"])["home_fk_diff_resid"]
+        .agg(mean="mean", sem="sem")
+        .reset_index()
+    )
+
+    # Print summary table
+    print(f"\n  {'Season':>6}  {'Group':>22}  {'Mean Resid FK Diff':>18}  {'SEM':>6}")
+    print("  " + "-" * 58)
+    for _, row in season_means.iterrows():
+        g = row["epi_group"].replace("\n", " ")
+        print(f"  {int(row['season']):>6}  {g:>22}  {row['mean']:>+18.3f}  {row['sem']:>6.3f}")
+
+    # ---- Plot ----------------------------------------------------------------
+    _setup_style()
+    fig, ax = plt.subplots(figsize=(13, 6))
+    fig.patch.set_facecolor("#0f1117")
+    ax.set_facecolor("#0f1117")
+
+    palette = {
+        "Top 25%\n(Most Hostile)":    ACCENT_COVID,
+        "Bottom 25%\n(Least Hostile)": ACCENT_NORMAL,
+    }
+
+    for grp, color in palette.items():
+        sub = season_means[season_means["epi_group"] == grp]
+        label = grp.replace("\n", " ")
+        ax.plot(sub["season"], sub["mean"], "o-", color=color,
+                lw=2.5, ms=8, label=label, zorder=4)
+        ax.fill_between(
+            sub["season"],
+            sub["mean"] - 1.96 * sub["sem"],
+            sub["mean"] + 1.96 * sub["sem"],
+            color=color, alpha=0.12,
+        )
+
+    ax.axhline(0, color="#6b7280", lw=1.2, ls="--", alpha=0.6)
+    ax.axvspan(2019.5, 2020.5, color="#fbbf24", alpha=0.07, label="COVID season (2020)")
+    ax.axvline(2019.5, color="#fbbf24", lw=1.2, ls=":", alpha=0.7)
+
+    ax.set_xticks(SEASONS)
+    ax.set_xticklabels(SEASONS, fontsize=10, color="#d1d5db")
+    ax.set_xlabel("Season", fontsize=12, color="#9ca3af")
+    ax.set_ylabel("Residualized Home Free Kick Differential", fontsize=11, color="#9ca3af")
+    ax.set_title(
+        "Residualized EPI Stratification: Mean FK Differential Controlled for Matchup Baseline Strength\n"
+        "Top 25% Most Hostile vs Bottom 25% Least Hostile Matchups (2012-2020)",
+        fontsize=13, color="#f3f4f6", pad=12,
+    )
+    ax.tick_params(colors="#9ca3af")
+    ax.grid(True, alpha=0.25, color="#374151")
+    ax.spines["bottom"].set_color("#374151")
+    ax.spines["left"].set_color("#374151")
+    ax.spines["top"].set_visible(False)
+    ax.spines["right"].set_visible(False)
+
+    ax.legend(fontsize=10.5, framealpha=0.25, facecolor="#1f2937",
+              edgecolor="#374151", labelcolor="#e5e7eb")
+
+    plt.tight_layout()
+    fig.savefig(out_path, dpi=160, bbox_inches="tight", facecolor="#0f1117")
+    log.info("Residualized stratification plot saved -> %s", out_path)
+    plt.close()
+
+
+# ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
 
@@ -418,6 +542,7 @@ def main() -> None:
     task1_epi_stratification(df, out_path="figure_epi_stratification.png")
     task2_fk_decomposition(df)
     task3_tackle_rate_reconciliation(df, out_path="figure_tackle_rate_ts.png")
+    task4_residualized_stratification(df, out_path="figure_residualized_stratification.png")
 
     print(f"\n{SEP}")
     print("  Mechanism verification complete.")

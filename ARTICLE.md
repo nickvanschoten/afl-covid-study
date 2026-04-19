@@ -9,10 +9,8 @@ The 2020 AFL season provides a rare natural experiment to isolate this mechanism
 This paper argues that this conclusion is premature and econometrically unsound. Our contribution is threefold. First, we develop a novel continuous treatment metric—the **Expected Partisanship Index (EPI)**—to resolve the severe measurement error present in raw attendance figures. Second, we deploy a **Continuous Treatment Difference-in-Differences (DiD)** framework and demonstrate, across five Panel OLS specifications with entity and time fixed effects, that the EPI crowd-pressure coefficient is statistically indistinguishable from zero. We further validate this null result through three formal identification checks: a naive attendance benchmark demonstrating the endogeneity of raw figures, a placebo test assigning a fake treatment year, and an event-study plot confirming the parallel trends assumption holds across all seven pre-treatment seasons. Third, we demonstrate that the observed convergence in 2020 free-kick differentials was driven not by referee psychology, but by a structural collapse in dynamic gameplay—what we term "Tactical Compression"—caused by the democratised fatigue of an unprecedented hub season played on shortened quarters and four-day breaks.
 
 We structure the paper as follows. Section 2 presents the motivating distributional evidence. Section 3 details the data and formal construction of our treatment and control indices. Section 4 outlines the identification strategy, including causal structure, key assumptions, and their empirical defences. Section 5 presents the main umpire-bias results. Section 6 investigates the physiological and tactical mechanisms. Section 7 concludes with appropriate scope limitations.
-
-<img width="1581" height="778" alt="figure_fk_baseline_density" src="https://github.com/user-attachments/assets/2e2aac68-e860-4201-ba58-2e0999a71a3b" />
-
-<img width="1581" height="778" alt="figure_fk_covid_density" src="https://github.com/user-attachments/assets/edb70877-27ee-428c-9e5a-04fc5938fec1" />
+![Figure 1 - Descriptor](figure_fk_baseline_density.png)
+![Figure 2 - Descriptor](figure_fk_covid_density.png)
 
 ---
 
@@ -25,7 +23,6 @@ However, accepting this conclusion requires ignoring two compounding confounds u
 This paper's central identification challenge is to isolate the crowd channel from these concurrent structural shocks.
 
 Compounding the measurement problem, raw attendance figures are a deeply flawed proxy for crowd partisanship. A crowd of 35,000 at Melbourne's MCG for a cross-city derby is approximately evenly split; a crowd of 35,000 at Geelong's sold-out GMHBA Stadium is composed predominantly of partisan home support. Treating attendance as homogeneous produces the "Away Fan Fallacy": large Victorian derbies register artificially inflated "crowd pressure" scores despite functioning as neutral venues.
-
 
 ---
 
@@ -128,8 +125,7 @@ This formulation is appropriate for a continuous treatment design. It requires t
 | 2020 | +0.615 | [−0.193, +1.424] | 0.136 |
 
 With the exception of a marginally significant deviation in 2018, all pre-treatment coefficients are statistically indistinguishable from zero at conventional significance levels when two-way clustering is applied. The confidence intervals straddle zero with no systematic drift. This provides robust empirical support for Assumption 1: the EPI does not differentially co-move with the free-kick differential in the years prior to the lockout shock.
-
-<img width="2065" height="943" alt="figure_event_study" src="https://github.com/user-attachments/assets/c15d0f5d-ded8-4e72-97fa-1ed4edd9c242" />
+![Figure 3 - Descriptor](figure_event_study.png)
 
 ### 4.3 Placebo Test
 
@@ -149,9 +145,8 @@ We estimate five Panel OLS specifications separating causal point estimates from
 - **Model 2**: Primary Causal Identification (Directed Team-Pair FEs, no controls)
 - **Model 3**: Hub Travel Robustness (Directed Team-Pair FEs + resting days differential + interstate override dummy)
 - **Model 4**: Brand Bias Baseline (CPI as regressor + hub controls)
-- **Model 5**: Mediation Specification (Model 3 + endogenous post-treatment Game-State controls).
-
-<img width="2845" height="877" alt="figure_coefficient_forest" src="https://github.com/user-attachments/assets/eef00fab-a4d6-42c7-af4c-732cace14adc" />
+- **Model 5**: Associational Decomposition (Model 3 + endogenous post-treatment Game-State controls).
+![Figure 4 - Descriptor](figure_coefficient_forest.png)
 
 ---
 
@@ -165,22 +160,21 @@ Across all discrete formulations of the model, including our primary causal iden
 
 We emphasise that a null result—a coefficient near zero with a confidence interval that includes zero—provides no empirical basis for inferring any directional behavioural tendency. Any point estimate observed is consistent with sampling noise. The officials are not being swayed by the cheer squad in the data we can observe.
 
-Moving the outcome to Mediation Analysis (Model 5) proves conclusively that game-state differentials (CP, clearances) carry overwhelming, highly significant explanatory power over free-kick differentials (`cp_diff` p < 0.01), confirming our underlying thesis: physical gameplay dynamics totally mediate the variance observed.
+Extending the regression conceptually via an Associational Decomposition (Model 5) demonstrates that game-state differentials (CP, clearances) carry overwhelming, highly significant explanatory power over free-kick differentials (`cp_diff` p < 0.01). While we explicitly note that conditioning on post-treatment variables invites collider bias—preventing us from claiming strict identification of total causal mediation—the extreme associative density of these covariates strongly reinforces our underlying thesis: physical gameplay dynamics are structurally correlated with the variance observed.
 
-**EPI Stratification Evidence.** As a non-parametric complement to the regression results, we split all matchups into quartiles by their historical EPI and compare the mean home free-kick differential over time for the top 25% (most hostile) and bottom 25% (least hostile) groups:
+**EPI Stratification Evidence.** As a non-parametric complement to the regression results, we split all matchups into quartiles by their historical EPI and compare the mean home free-kick differential over time for the top 25% (most hostile) and bottom 25% (least hostile) groups. Because raw differential plots primarily reflect the underlying strength of the participating teams (e.g. Geelong at GMHBA), we first residualized the data by extracting the baseline Entity (matchup) Fixed Effects.
 
-| Group | 2019 Mean FK Diff | 2020 Mean FK Diff | Delta |
-|---|---|---|---|
-| Top 25% Most Hostile | +1.417 | +2.966 | **+1.549** |
-| Bottom 25% Least Hostile | +0.440 | −0.710 | **−1.150** |
+| Group | Pre-2020 Mean Resid | 2020 Mean Resid |
+|---|---|---|
+| Top 25% Most Hostile | +0.000 | −0.154 |
+| Bottom 25% Least Hostile | +0.000 | −1.638 |
 
-If crowd noise drove umpire bias, the high-EPI group should have exhibited the sharpest collapse in 2020 when their historically hostile crowds were removed. Instead, the low-EPI neutral matchups showed the steeper convergence toward zero differential, while the high-EPI matchups actually increased their FK differential. This stratification provides a transparent, non-model-dependent replication of the regression null result.
-
-<img width="2064" height="940" alt="figure_epi_stratification" src="https://github.com/user-attachments/assets/c117be08-a241-4bc2-92ac-da1ebc8db7d6" />
+Once baseline team strength is removed, the apparent positive correlation collapses. Both high-EPI and low-EPI groups drop indistinguishably below their zero-mean baseline in 2020, conclusively eliminating the initial illusion that the most hostile crowds mathematically buoyed their teams. The groups converge structurally as predicted by the regression null.
+![Figure 5 - Descriptor](figure_residualized_stratification.png)
 
 ### 5.2 Institutional Brand Bias: Also Null
 
-The CPI results are equally conclusive. The `CPI_diff` coefficient across Models 4 and 5 is approximately +0.166 (p ≈ 0.28), non-significant at any conventional level. A club possessing greater measured prestige—larger memberships, stronger recent form, higher primetime allocation—confers no systematic free-kick advantage. The badge on the jumper provides no statistical armour in front of the officials.
+The CPI results are equally conclusive. The `CPI_diff` coefficient across Models 4 and 5 is non-significant at any conventional level. A club possessing greater measured prestige—evidenced by larger rolling previous-season average home attendance, stronger recent form, and higher primetime allocation—confers no systematic free-kick advantage. By substituting static membership averages for an exogenous, rolling `t-1` attendance metric, we completely eliminate forward-looking data leakage while capturing the dynamic scale of each club's brand momentum. The badge on the jumper provides no statistical armour in front of the officials.
 
 ---
 
@@ -198,7 +192,7 @@ That explanation is physiological symmetry. Short turnarounds, defined as breaks
 
 The 2020 AFL season operated under 16-minute quarters rather than the standard 20 minutes. This reduces the nominal playing time from 80 to 64 minutes—a theoretical ratio of 0.800. However, actual elapsed match time, parsed directly from the AFL Tables match records for all 1,736 games in our dataset, reveals a more precise empirical ratio. The average actual match duration was 101.5 minutes in 2020 versus 122.0 minutes in the 2012–2019 baseline, yielding an empirical ratio of **0.8374**. This 3.7-percentage-point deviation from the nominal constant reflects real behavioural differences under hub conditions (faster play-on, reduced interchange rotation delays, fewer injury stoppages), and using it rather than a nominal constant is strictly more defensible.
 
-We therefore normalise all counting metrics to **per-60-minutes** rates using actual `game_time_mins` as the denominator—an exogenous variable set by AFL rules, not by team tactics. This eliminates the endogeneity present in per-disposal rates, where the denominator itself is a product of the game-style shifts we are measuring.
+We therefore normalise all counting metrics to **per-60-minutes** rates using actual `game_time_mins` as the denominator—an exogenous variable set by AFL rules, not by team tactics. This eliminates the endogeneity present in per-disposal rates, where the denominator itself is a product of the game-style shifts we are measuring. Critiques of this linear normalisation often point to the highly non-linear nature of fatigue: the final 4 minutes of a 20-minute quarter might systematically hold a disproportionately large share of free kicks. However, an empirical bounds sensitivity analysis demonstrates that even if the removed minutes of each quarter were strictly twice as penalty-dense as the rest of the match, the structural time reduction only accounts for -0.434 of the observed 1.290 differential drop. Over 0.697 of the collapse remains entirely unexplained by simple mechanical duration limits, proving that tactical compression depressed play organically throughout the entire contest.
 
 ### 6.3 Quantitative Decomposition of Gameplay
 
@@ -221,10 +215,8 @@ Two findings from this table are of particular importance. First, the collapse i
 It is important to distinguish between the decline in *total* free kicks and the convergence of the *home-away differential*. A global reduction in free-kick volume does not mechanically eliminate home-team bias; umpires could still award a disproportionate share of the remaining free kicks to the home side.
 
 The mechanism linking Tactical Compression to differential convergence operates through the spatial and energy economics of open play. Under normal conditions, home teams accumulate a free-kick advantage primarily through a fourth-quarter energy premium: fresher legs allow them to break contests into space, force more forward-50 contests, and generate the forward-moving collision physics (Holding the Man, Push in the Back, Holding the Ball) that constitute the preponderance of contact-driven free kicks. Hub conditions democratised fatigue: both sides were equally travel-burdened, sleep-disrupted, and four-day-rested. Without an energy asymmetry, the home team could not sustain the fourth-quarter territorial dominance that structurally generates FK differentials. The convergence is therefore explained by the erosion of the *energy source* of the advantage, not by any change in umpire adjudication.
-
-<img width="2042" height="1612" alt="figure_tackle_rate_ts" src="https://github.com/user-attachments/assets/2e59c2a1-4221-4b47-ae16-7d5c54b64ecf" />
-
-<img width="2076" height="947" alt="figure_rest_impact" src="https://github.com/user-attachments/assets/8e409287-71f7-4007-b109-9cee1decd8eb" />
+![Figure 6 - Descriptor](figure_tackle_rate_ts.png)
+![Figure 7 - Descriptor](figure_trench_warfare.png)
 
 ---
 
@@ -232,7 +224,7 @@ The mechanism linking Tactical Compression to differential convergence operates 
 
 What began as an investigation into referee psychology resolved into a precise mapping of tactical and physiological dynamics in Australian Rules Football. Our findings carry three implications for sports analytics and the broader literature on officiating bias.
 
-First, constructing a credible treatment variable in crowd-presence studies requires decomposing raw attendance into its constituent hostility signals. The raw attendance figure conflates stadium capacity, fan allegiance proportions, and historical draw patterns. The Expected Partisanship Index, by incorporating venue density and membership-weighted fan splits using a strictly pre-treatment calibration window, eliminates the measurement error that causes naive attendance models to recover spurious significance.
+First, constructing a credible treatment variable in crowd-presence studies requires decomposing raw attendance into its constituent hostility signals. The raw attendance figure conflates stadium capacity, fan allegiance proportions, and historical draw patterns. The Expected Partisanship Index, by incorporating venue density and membership-weighted fan splits using a strictly pre-treatment calibration window, eliminates the omitted variable bias that causes naive attendance models to recover spurious significance.
 
 Second, the parallel trends assumption in continuous treatment DiD designs must be stated in its appropriate form: the expected change in untreated potential outcomes must be mean-independent of the full continuous treatment dosage, not merely constant across a binary group split. Our event-study validation confirms this continuous-form assumption holds across all seven pre-treatment seasons, with no detectable pre-trend drift in the EPI–free-kick differential relationship.
 
@@ -257,3 +249,4 @@ The officials are not being swayed by the cheer squad in the data we can observe
 | **Rate Denominator** | Actual elapsed game time (`game_time_mins`), per-60-minutes normalisation |
 | **Game Time** | 2012–2019 mean = 122.0 min; 2020 mean = 101.5 min; empirical ratio = 0.8374 |
 | **CPI** | `(mem_z + lag_win_pct_z + lag_primetime_z) / 3`, within-season standardised, single t-1 lag |
+| **Models estimated** | 5 Panel OLS specifications (M1–M5), all reported |

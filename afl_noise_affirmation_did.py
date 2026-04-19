@@ -748,7 +748,7 @@ def calculate_cpi_metrics(df: pd.DataFrame) -> pd.DataFrame:
     df = df.copy()
     
     # 1. Isolate Team-Seasons
-    home = df[["season", "home_team", "home_score", "away_score", "is_primetime"]].rename(
+    home = df[["season", "home_team", "home_score", "away_score", "is_primetime", "attendance"]].rename(
         columns={"home_team": "team", "home_score": "pts_for", "away_score": "pts_against"}
     )
     home["is_win"] = (home["pts_for"] > home["pts_against"]).astype(int)
@@ -764,24 +764,30 @@ def calculate_cpi_metrics(df: pd.DataFrame) -> pd.DataFrame:
         win_pct=("is_win", "mean"),
         primetime_pct=("is_primetime", "mean")
     ).reset_index()
+
+    # Calculate mean home attendance separately
+    home_att = home.groupby(["season", "team"])["attendance"].mean().reset_index().rename(columns={"attendance": "home_att"})
+    season_stats = season_stats.merge(home_att, on=["season", "team"], how="left")
+    
+    # Fill missing home_att with global average if any
+    season_stats["home_att"] = season_stats["home_att"].fillna(season_stats["home_att"].mean())
     
     # 2. Lag the variables (DO NOT BACKFILL 2012)
     season_stats = season_stats.sort_values(["team", "season"])
     season_stats["prev_win_pct"] = season_stats.groupby("team")["win_pct"].shift(1)
     season_stats["prev_primetime_pct"] = season_stats.groupby("team")["primetime_pct"].shift(1)
+    season_stats["prev_home_att"] = season_stats.groupby("team")["home_att"].shift(1)
     
-    # 3. Memberships Anchor
-    season_stats["memberships"] = season_stats["team"].map(CLUB_MEMBERSHIPS).fillna(40000)
-    
-    # 4. Intra-Season Standardisation
+    # 3. Intra-Season Standardisation
     def z_score(x):
         return (x - x.mean()) / x.std() if x.std() > 0 else 0
         
-    season_stats["mem_z"] = season_stats.groupby("season")["memberships"].transform(z_score)
+    # Replace static membership anchor with strictly exogenous rolling T-1 home attendance
+    season_stats["mem_z"] = season_stats.groupby("season")["prev_home_att"].transform(z_score)
     season_stats["win_z"] = season_stats.groupby("season")["prev_win_pct"].transform(z_score)
     season_stats["prime_z"] = season_stats.groupby("season")["prev_primetime_pct"].transform(z_score)
     
-    # 5. Composite Assembly
+    # 4. Composite Assembly
     season_stats["cpi_raw"] = (season_stats["mem_z"] + season_stats["win_z"] + season_stats["prime_z"]) / 3
     season_stats["cpi_score"] = season_stats.groupby("season")["cpi_raw"].transform(z_score)
     
