@@ -357,9 +357,10 @@ def parse_match_stats(match_info: dict) -> Optional[dict]:
 
     soup = BeautifulSoup(html, "html.parser")
 
-    # --- Date / Primetime & Attendance --------------------------------
+    # --- Date / Primetime, Attendance & Game Time ---------------------
     attendance = np.nan
     is_primetime = 0
+    game_time_mins = np.nan
     for b_tag in soup.find_all("b"):
         text = b_tag.get_text(strip=True).lower()
         if "date:" in text:
@@ -373,14 +374,21 @@ def parse_match_stats(match_info: dict) -> Optional[dict]:
                 if m:
                     attendance = int(m.group(1).replace(",", ""))
 
+    # Game time: appears as plain text "Game time:125m 18s" in the page body.
+    # Use the raw HTML string (faster than navigating the parsed tree).
+    gt_m = re.search(r"Game time:\s*(\d+)m\s*(\d+)s", html)
+    if gt_m:
+        game_time_mins = int(gt_m.group(1)) + int(gt_m.group(2)) / 60.0
+
+    result = {"attendance": attendance, "is_primetime": is_primetime,
+              "game_time_mins": game_time_mins}
+
     # --- Parse stat tables --------------------------------------------
     # AFL Tables pages have two stat tables: one per team.
+    # Identify them by presence of both 'FF' and 'HB' in header row.
     tables = soup.find_all("table")
     stat_tables = []
     for tbl in tables:
-        # AFL Tables uses 'KI' for Kicks, 'FF' for Free Kicks For, etc.
-        # The first <th> in each team's stats table contains the team name.
-        # Identify stat tables by presence of 'FF' and 'HB' in th headers.
         headers = [th.get_text(strip=True) for th in tbl.find_all("th")]
         if "FF" in headers and "HB" in headers:
             stat_tables.append((headers, tbl))
@@ -390,9 +398,8 @@ def parse_match_stats(match_info: dict) -> Optional[dict]:
                   url, len(stat_tables))
         return None
 
-    result = {"attendance": attendance, "is_primetime": is_primetime}
-
     for idx, (headers, tbl) in enumerate(stat_tables[:2]):
+
         prefix = "home" if idx == 0 else "away"
         rows = tbl.find_all("tr")
         if not rows:
@@ -809,6 +816,7 @@ def build_panel(df: pd.DataFrame) -> pd.DataFrame:
         "epi_raw":        "mean",
         "attendance":     "mean",
         "cpi_diff":       "mean",
+        "game_time_mins": "mean",
     }
     # Keep only columns that exist
     agg_dict = {k: v for k, v in agg_dict.items() if k in df.columns}

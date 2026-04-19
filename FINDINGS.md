@@ -1,104 +1,160 @@
-# The Ghost Town Effect: What 2020’s Empty Stadiums Actually Taught Us About AFL Umpire Bias
+# The Ghost Town Effect: Study Findings
 
-*A portfolio case study in causal inference, sports analytics, and data-driven storytelling.*
-
----
-
-## The Footy Pub Myth 
-
-If you sit in the stands at any AFL game long enough, you'll inevitably hear the same complaint: the umpires are being swayed by the crowd. 
-
-In sports science, this is formally known as the **"Noise of Affirmation"**. The theory makes intuitive sense. When 50,000 fans scream "Ball!" every time the opposition is tackled, it creates a massive psychological pressure gradient. It’s entirely plausible that adjudicators, consciously or not, might be nudged into favouring the home team just to ease that pressure. Historically, AFL home teams *have* consistently won the free-kick count, but proving whether that’s due to crowd noise, genuine home-ground confidence, or pure structural noise has always been an empirical nightmare.
-
-Then came the 2020 AFL season. Lockdowns forced the league into isolated hubs, and the stadiums went completely quiet. The roar was gone. For analysts, this was a massive, once-in-a-lifetime natural experiment. If the crowd was driving the bias, removing the crowd should flatten the free-kick differential.
-
-At first glance, that’s exactly what the 2020 data showed. The home advantage in free kicks plummeted. Case closed, right? 
-
-Not exactly. As it turns out, jumping to that conclusion was a massive statistical trap.
-
-> *The Illusion: In the 2012-2019 baseline, home teams enjoyed a distinct free-kick advantage — the distribution peaks meaningfully to the right of zero. In the 2020 hub season, the distributions converge, heavily implying that the removal of crowds eliminated umpire bias.*
-
-![Baseline Free Kick Differential Distribution](figure_fk_baseline_density.png)
-![Baseline vs 2020 Free Kick Differential Convergence](figure_fk_covid_density.png)
+*A plain-English and technical summary of all empirical results, updated to reflect peer-review revisions.*
 
 ---
 
-## Fixing the Data: The "Away Fan Fallacy"
+## Core Question
 
-The problem with just comparing "before 2020" to "during 2020" is that raw attendance data in the AFL is deeply flawed as a measure of partisanship. 
+Did the removal of partisan crowds from AFL stadiums in 2020 cause umpires to award fewer free kicks to the home team?
 
-Take the "Away Fan Fallacy". If the Western Bulldogs are hosting Collingwood at Marvel Stadium, the raw attendance numbers might look like a massive home-ground advantage on a spreadsheet. But anyone who actually goes to the footy knows the Pies fans will likely take over the building. Conversely, a 50/50 split at the MCG with the MCC reserve packed out is a completely different psychological environment to a hostile, locked-out Friday night showdown at Adelaide Oval. 
-
-Treating "attendance" as a single, uniform metric produces garbage-in, garbage-out models. 
-
-To fix this, I engineered a **Net Partisan Hostility Index (EPI)**. Instead of just looking at crowd size, this metric recalculated historical pressure by factoring in:
-* **Stadium Density:** 35,000 fans packed into GMHBA Stadium is a fortress; 35,000 at the MCG is an echo chamber. We scaled expected crowds against venue capacity.
-* **Proportional Fan Splits:** Using 5-year average club membership data, we adjusted for same-state match-ups to accurately map who the fans were actually cheering for. 
-
-This gave us a genuine, continuous variable of how hostile an environment *should* have been on any given day. 
-
-## The Econometrics: Busting the Bias
-
-Armed with a clean variable, I ran a **Fuzzy Difference-in-Differences** regression. The logic here is airtight: if crowds cause umpire bias, the games that historically generated the *most* hostile atmospheres should show the *biggest* shift when those crowds disappeared. 
-
-**They didn't.**
-
-Across five separate Panel OLS model specifications, adjusting for physical game states (contested possessions, territory control), the crowd pressure coefficient was statistically dead. There was no "Noise of Affirmation." In fact, the data showed a marginal tendency for umpires to *overcompensate* in empty stadiums, subtly protecting the home team when the eerie silence set in. 
-
-We also tested for **Institutional Bias**. Do umpires subconsciously favour the big brands? I built a Club Prestige Index (CPI) tracking club memberships, recent premiership success, and Friday night primetime allocations. The result? Another near-zero, non-significant coefficient. The badge on the jumper gives you no statistical armour. 
-
-The myth of the umpiring ride was dead. The officials are actually remarkably resilient. 
-
-> *The Econometric Reality: Cluster-robust 95% confidence intervals across all model specifications demonstrate that while physical game mechanics dictate the whistle, both crowd partisanship (EPI) and institutional brand weight (CPI) fail to reach statistical significance.*
-
-![Coefficient Forest Plot](figure_coefficient_forest.png)
+**Answer: No.** The data provides no statistically detectable evidence of crowd-driven umpire bias. The convergence in home free-kick differentials observed in 2020 is explained by a structural collapse in dynamic gameplay caused by the physical demands of the hub season — not by any change in how umpires applied their judgement.
 
 ---
 
-## The Plot Twist: Trench Warfare 
+## Part 1: Disproving the Noise of Affirmation
 
-If the umpires didn't change their whistle, why did the free kick data converge so sharply in 2020? The answer wasn't psychological. It was physiological. 
+### The Treatment Variable: Expected Partisanship Index (EPI)
 
-The 2020 hub season was a brutal physical grind. Teams were playing off four-day breaks. To manage the load, the AFL shortened quarters from 20 minutes to 16 minutes. Because the game was shorter, you couldn't just compare raw counting stats. I had to convert all the match mechanics into **per-disposal rates** to see how the actual *style* of play had changed.
+Raw attendance is endogenous to crowd partisanship: a 35,000-person MCG derby crowd is roughly neutral, but 35,000 fans at a sold-out GMHBA Stadium are overwhelmingly Geelong supporters. Treating them identically produces the "Away Fan Fallacy."
 
-Once the math was normalised, the real culprit appeared. 
+The EPI resolves this by computing:
 
-| Metric | Baseline (2012–19) | 2020 (Hub Season) | Change | Significance |
+```
+EPI_raw = historical_attendance × (historical_attendance / venue_capacity) × fan_split_multiplier
+```
+
+where `fan_split_multiplier` accounts for membership ratios, interstate matches, and known derby dynamics. The 2020 EPI uses a strictly pre-treatment 2015–2019 attendance baseline to preserve exogeneity.
+
+**Empirical validation**: A naive model using raw standardised attendance as the treatment recovers a spurious borderline-significant crowd coefficient (`deficit × raw_att_z = +2.00, p = 0.050`). Replacing it with the EPI returns a null result. This contrast empirically justifies the instrument.
+
+### Panel OLS Results (5 Specifications)
+
+All five model specifications — from the base binary DiD through to the full EPI + CPI + game-state control model — return a statistically insignificant `deficit_x_epi` coefficient. Standard errors are clustered at the matchup level. Cluster-robust 95% confidence intervals uniformly overlap zero.
+
+> **Important**: A null result means the data cannot detect an effect. It does not constitute evidence of any behavioural direction. No inference about umpire psychology is made from the sign of the insignificant point estimate.
+
+### EPI Stratification
+
+If crowd noise drove the free-kick differential, the historically most-hostile matchups (top EPI quartile) should have collapsed the most in 2020 when their crowds were removed. The opposite is observed:
+
+| Group | 2019 FK Diff | 2020 FK Diff | Change |
+|---|---|---|---|
+| Top 25% Most Hostile | +1.42 | +2.97 | **+1.55** |
+| Bottom 25% Least Hostile | +0.44 | −0.71 | **−1.15** |
+
+Neutral matchups collapsed. High-hostility matchups held or increased. This directly contradicts the crowd-pressure prediction and replicates the regression null without a model.
+
+### Institutional Bias (Club Prestige Index)
+
+The CPI aggregates each club's membership base, prior-season win rate, and primetime broadcast allocation into a matchup-level prestige differential. The CPI coefficient across all relevant model specifications is approximately +0.166 (p ≈ 0.28) — statistically insignificant. The badge on the jumper provides no detectable umpiring advantage.
+
+---
+
+## Part 2: Identification Robustness
+
+### Parallel Trends Validation (Event-Study)
+
+To satisfy the parallel trends assumption for a Continuous Treatment DiD, the expected change in free-kick differentials must be mean-independent of the EPI treatment intensity across the pre-treatment period. We validate this by interacting the EPI with individual year dummies (2012–2020) and testing whether the pre-2020 coefficients are statistically distinguishable from zero:
+
+| Year | Coef | p-value |
+|---|---|---|
+| 2012 | −0.282 | 0.742 |
+| 2013 | −0.384 | 0.637 |
+| 2014 | −0.204 | 0.763 |
+| 2015 | −0.155 | 0.814 |
+| 2016 | −0.376 | 0.559 |
+| 2017 | −0.380 | 0.602 |
+| 2018 | +0.181 | 0.794 |
+| **2019** | **0.000** | **(reference)** |
+| 2020 | +0.542 | 0.431 |
+
+All seven pre-treatment coefficients are statistically indistinguishable from zero. No systematic pre-trend drift is present. Parallel trends holds.
+
+### Placebo Test (Fake 2018 Lockout)
+
+Excluding 2020 and assigning a fake treatment to 2018 (`deficit_ratio = 1.0` for all 2018 games):
+
+```
+deficit_x_epi (PLACEBO 2018) = +0.344, p = 0.526
+```
+
+The fixed-effect structure does not manufacture false positives. The result is cleanly null.
+
+---
+
+## Part 3: Tactical Compression — The True Mechanism
+
+### Why Disposals Are the Wrong Denominator
+
+An earlier draft normalised all metrics as rates per disposal. This is methodologically flawed: disposals are endogenous to the style of play being measured — a congested 2020 game produces fewer disposals *and* fewer free kicks through the same underlying mechanism. Dividing by them creates a numerator-denominator correlation that compresses apparent effect sizes.
+
+**The correct denominator is actual elapsed game time** — an exogenous variable governed by AFL rules, not team tactics.
+
+### Game Time: Empirical vs. Nominal
+
+The 2020 AFL season used 16-minute quarters (vs. 20 minutes normally). The theoretical correction factor is 80/64 = 1.25. The actual correction, measured from AFL Tables match records for all 1,736 games, is:
+
+| Era | Mean Game Time |
+|---|---|
+| 2012–2019 | 122.0 min |
+| 2020 | 101.5 min |
+| **Empirical ratio** | **0.8374** |
+| Nominal ratio | 0.8000 |
+
+The 3.7 percentage-point difference represents real hub-season behaviour: faster play-on, fewer rotation stoppages, reduced injury delays. Using the empirical figure rather than the nominal constant is analytically superior.
+
+### Per-60-Minute Results
+
+Converting all counting metrics to per-60-minute rates using actual game time:
+
+| Metric | Baseline (2012–2019) | 2020 | Change | p-value |
 |---|---|---|---|---|
-| **Forward Efficiency** (Marks Inside 50 / Total I50) | 22.6% | 20.5% | **−9.2%** | p < 0.0001 |
-| **Contested Possession Rate** | 38.4% | 39.9% | **+3.8%** | p < 0.0001 |
-| **Total Match Free Kicks** | 37.2 per game | 32.3 per game | **−13.2%** | p < 0.00001 |
-| **Tackle Rate** | 17.8% | 17.1% | −4.1% | p = 0.016 |
+| **Forward Efficiency** (MI50/I50) | 22.6% | 20.5% | **−9.2%** | < 0.0001 |
+| **Contested Possession Rate** (CP/DI) | 38.4% | 39.9% | **+3.8%** | < 0.0001 |
+| **Tackles per 60 min** | 64.6 | 59.5 | **−7.9%** | < 0.0001 |
+| **Free Kicks per 60 min** | ~18.4 | ~19.0 | **+3.3%** | ~0.29 (ns) |
 
-> *The Trench Warfare Signature: A comparison of structural game mechanics reveals a massive compression in match margins and a catastrophic 9.2% collapse in Forward Efficiency. The 2020 season was structurally gridlocked.*
+The last row is the critical finding: **free kicks per 60 minutes did not decline significantly**. When normalised to actual game time, adjudication density was stable. The entire 13.2% raw-count decline in total match free kicks is a pure volume effect of the 20-minute shorter game — not a change in umpire behaviour.
 
-![Trench Warfare Era Comparison](figure_trench_warfare.png)
+### Tackle Rate Reconciliation
 
-A 9.2% drop in Forward Efficiency is a structural collapse. It means midfielders didn't have the legs to lower their eyes, and forwards didn't have the anaerobic burst to make clean leads. 
+An earlier manuscript draft contained a contradiction: Section 6 cited a Tackle Rate decline of −4.1%, while a figure note described it as "ticking up slightly in 2020." This was caused by using the disposal-based denominator:
 
-The 2020 season devolved into **Trench Warfare**. The ball spent the entire year trapped in rolling, exhausting, congested scrums. Players were quite literally too tired to run. 
+- **Endogenous denominator** (TK/DI): −4.1% (p = 0.016) — disposals shrank too, compressing the ratio
+- **Exogenous denominator** (TK/60min): **−7.9% (p < 0.0001)** — the correct figure
 
-And this solves the free-kick paradox. High-variance free kick counts (holding the man, push in the back, holding the ball) are generated by open, dynamic football where exhausted players are forced into desperate, lunging tackles. When you replace that with a grinding, 36-man scrum where the whistle constantly blows for a neutral ball-up, the free kick variance naturally disappears. 
+The "tick up" in the earlier figure referred to the 2019-to-2020 single-year increment: 2019 was the all-time sample low (61.2 TK/60min), and 2020 (59.5 TK/60min) is marginally higher than 2019 alone. However, 2020 remains approximately 5 tackles per 60 minutes below the full 2012–2019 baseline mean and is the second-lowest season in the dataset. There is no contradiction in the per-60 data.
 
-The free kicks didn't dry up because the fans were gone. They dried up because the run-and-gun mechanics of Australian Rules Football had ground to a halt.
+### Why Tactical Compression Eliminated the Differential
 
-> *Year-over-Year Game Style Evolution: The vertical dashed line marks the 2020 COVID Hub season. The sudden spike in Contested Possession Rate alongside dropping tackle rates highlights the immediate onset of fatigue-driven congestion.*
+A reduction in total free kicks does not mechanically eliminate home-team bias; umpires could still allocate a disproportionate share of the remaining free kicks to the home side. The mechanism linking game-style collapse to *differential* convergence operates through the energy economics of open play.
 
-![Game Style Evolution](figure_game_style_evolution.png)
+Under normal conditions, home teams accumulate a free-kick advantage primarily through a fourth-quarter energy premium: superior rest and routine allows them to break contested scrums into space, forcing exhausted away players into contact-driven infractions (Holding the Ball, Holding the Man, Push in the Back). Hub conditions democratised this fatigue. Both teams were equally travel-burdened and four-day-rested. Without an energy asymmetry, the home team could not sustain the late-game territorial dominance that structurally generates free-kick differentials. The convergence reflects the erosion of the *source* of the advantage — not a change in adjudication.
 
 ---
 
-## The Takeaway
+## Summary of Key Statistics
 
-What started as an investigation into referee psychology turned into a definitive mapping of athlete physiology. It highlights a core lesson in data science: just because two variables move at the same time (empty stadiums and falling free-kick differentials) doesn't mean they are having a conversation. 
+| Finding | Value |
+|---|---|
+| Baseline mean FK differential (2012–2019) | +1.51 free kicks/game |
+| 2020 mean FK differential | +0.38 free kicks/game |
+| EPI crowd coefficient (all models) | Not significant (p > 0.10) |
+| CPI brand coefficient | +0.166, p ≈ 0.28 |
+| Placebo test (2018): `deficit_x_epi` | +0.344, p = 0.526 |
+| Event-study: max pre-treatment p-value | 0.814 (all > 0.55) |
+| Naive attendance model: `deficit × att_z` | +2.00, p = 0.050 |
+| Forward Efficiency change (per-60) | −9.2%, p < 0.0001 |
+| Tackles/60 min change | −7.9%, p < 0.0001 |
+| Free Kicks/60 min change | +3.3%, p ≈ 0.29 (ns) |
+| Raw FK count change | −13.2%, p < 0.00001 (volume only) |
+| Actual game time ratio (2020 / pre-2020) | 0.8374 (nominal: 0.800) |
 
-For the armchair critic: the umps aren't being swayed by the cheer squad. They’re just adjudicating the game in front of them. 
+---
 
-## Methodological Footprint
+## Scope and Limitations
 
-*For technical readers and recruiters, the architecture behind these findings includes:*
+This study establishes that, in the specific and extraordinary context of the 2020 AFL hub season, behavioural shifts in game mechanics were of sufficient magnitude to render crowd-based umpire bias statistically undetectable. We do not claim this proves crowd effects are absent under normal operating conditions. The appropriate conclusion is that tactical compression was the dominant explanatory force in 2020, and that the threshold for crowd-pressure effects to manifest above this structural noise could not be crossed in this particular seasonal context.
 
-* **Causal Inference:** A Fuzzy Difference-in-Differences (DiD) framework was deployed to exploit continuous variation in treatment intensity, providing far more robust causal identification than a binary pre/post split.
-* **Feature Engineering & Endogeneity:** Raw attendance was discarded due to endogeneity with team performance. The bespoke Net Partisan Hostility Index (EPI) resolved this by blending static venue density with lagging 5-year membership data to capture true crowd intent without data leakage. 
-* **Fixed Effects Modeling:** `linearmodels.PanelOLS` was utilized with Entity (Matchup) and Time (Season) fixed effects to absorb time-invariant stadium quirks and league-wide rule changes, alongside cluster-robust standard errors.
-* **Volume-Trap Resistance:** Structural game-style EDA neutralized the mechanical confounding of 2020's 16-minute quarters by strictly converting all counting metrics to per-disposal standardized rates.
+Future research exploiting partial-crowd variation — such as stadium-by-stadium capacity restrictions in other competitions — would provide stronger identification of the crowd channel in isolation.

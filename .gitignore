@@ -50,6 +50,13 @@ model4-5_output.txt
 nested_check.txt
 run.log
 venues.txt
+run_output.txt
+reingest_log.txt
+reingest.py
+robustness_output.txt
+mechanism_output.txt
+mechanism_output_v2.txt
+
 
 # -----------------------------------------------
 # OS artefacts
