@@ -73,34 +73,38 @@ def load_and_prep_data():
     return df
 
 def run_tests_and_summarize(df):
+    def _run_comparison(df_sub, label):
+        short_rest = df_sub[df_sub['Rest_Category'] == 'Short Rest']
+        long_rest = df_sub[df_sub['Rest_Category'] == 'Normal/Long Rest']
+        
+        metrics = {
+            'Contested Possession Rate': 'CPR',
+            'Forward Efficiency': 'Forward_Efficiency',
+            'Tackle Rate': 'Tackle_Rate',
+            'Total Match Free Kicks': 'Total_Free_Kicks'
+        }
+        
+        print("\n" + "="*85)
+        print(f"THE {label} MICRO-CLIMATE: IMPACT OF TURNAROUND TIME")
+        print(f"Short Rest (N={len(short_rest)}) vs Normal/Long Rest (N={len(long_rest)})")
+        print("="*85)
+        print(f"{'Metric':<30} | {'Short Rest Mean':<15} | {'Normal Rest Mean':<16} | {'P-Value'}")
+        print("-" * 85)
+        
+        for name, col in metrics.items():
+            sr_vals = short_rest[col].dropna()
+            lr_vals = long_rest[col].dropna()
+            
+            t_stat, p_val = stats.ttest_ind(sr_vals, lr_vals, equal_var=False)
+            
+            print(f"{name:<30} | {sr_vals.mean():<15.4f} | {lr_vals.mean():<16.4f} | {p_val:.4e}")
+        print("="*85 + "\n")
+
+    df_pre = df[df['season'] < 2020]
     df_2020 = df[df['season'] == 2020]
     
-    # We only care about games that fall into Short / Normal categories
-    short_rest = df_2020[df_2020['Rest_Category'] == 'Short Rest']
-    long_rest = df_2020[df_2020['Rest_Category'] == 'Normal/Long Rest']
-    
-    metrics = {
-        'Contested Possession Rate (CPR)': 'CPR',
-        'Forward Efficiency': 'Forward_Efficiency',
-        'Tackle Rate': 'Tackle_Rate',
-        'Total Match Free Kicks': 'Total_Free_Kicks'
-    }
-    
-    print("\n" + "="*85)
-    print(f"THE 2020 MICRO-CLIMATE: IMPACT OF TURNAROUND TIME")
-    print(f"Short Rest (N={len(short_rest)}) vs Normal/Long Rest (N={len(long_rest)})")
-    print("="*85)
-    print(f"{'Metric':<35} | {'Short Rest Mean':<15} | {'Normal Rest Mean':<16} | {'P-Value'}")
-    print("-" * 85)
-    
-    for name, col in metrics.items():
-        sr_vals = short_rest[col].dropna()
-        lr_vals = long_rest[col].dropna()
-        
-        t_stat, p_val = stats.ttest_ind(sr_vals, lr_vals, equal_var=False)
-        
-        print(f"{name:<35} | {sr_vals.mean():<15.4f} | {lr_vals.mean():<16.4f} | {p_val:.4e}")
-    print("="*85 + "\n")
+    _run_comparison(df_pre, "2012-2019 BASELINE")
+    _run_comparison(df_2020, "2020 HUB")
 
 def generate_visualizations(df):
     df_2020 = df[df['season'] == 2020]

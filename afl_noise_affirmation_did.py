@@ -577,8 +577,41 @@ def clean_data(df: pd.DataFrame) -> pd.DataFrame:
     # --- Matchup ID (order-independent, alphabetical) ---
     df["matchup_id"] = (
         df[["home_team", "away_team"]]
-        .apply(lambda r: "_vs_".join(sorted([r["home_team"], r["away_team"]])),
-               axis=1)
+        .apply(lambda r: "_vs_".join(sorted([r["home_team"], r["away_team"]])), axis=1)
+    )
+
+    # --- Matchup Directed ID (order-dependent) ---
+    df["matchup_directed_id"] = df["home_team"] + "_vs_" + df["away_team"]
+
+    # --- Date Parsing & Days Rest Calc ---
+    df['Date'] = pd.to_datetime(df['match_url'].str.extract(r'(\d{8})\.html', expand=False), format='%Y%m%d', errors='coerce')
+    
+    # Calculate days rest for home and away
+    home_df = df[['match_url', 'season', 'Date', 'home_team']].rename(columns={'home_team': 'team'})
+    away_df = df[['match_url', 'season', 'Date', 'away_team']].rename(columns={'away_team': 'team'})
+    team_matches = pd.concat([home_df, away_df]).sort_values(by=['team', 'Date'])
+    
+    # Calculate days since last match
+    team_matches['prev_match_date'] = team_matches.groupby(['team', 'season'])['Date'].shift(1)
+    team_matches['Days_Since_Last_Match'] = (team_matches['Date'] - team_matches['prev_match_date']).dt.days
+    
+    # Merge back to compute rest_diff
+    df = df.merge(team_matches[['match_url', 'team', 'Days_Since_Last_Match']].rename(
+        columns={'team': 'home_team', 'Days_Since_Last_Match': 'Home_Days_Rest'}
+    ), on=['match_url', 'home_team'], how='left')
+    
+    df = df.merge(team_matches[['match_url', 'team', 'Days_Since_Last_Match']].rename(
+        columns={'team': 'away_team', 'Days_Since_Last_Match': 'Away_Days_Rest'}
+    ), on=['match_url', 'away_team'], how='left')
+    
+    # Fill NA rest (e.g. first game of season) with 7 days
+    df['days_rest_diff'] = df['Home_Days_Rest'].fillna(7) - df['Away_Days_Rest'].fillna(7)
+
+    # --- Hub Location Control ---
+    # Determine if 'home' team is playing outside their home state in 2020
+    df['home_interstate_2020'] = df.apply(
+        lambda r: 1 if (r['covid_season'] == 1 and TEAM_STATE.get(r['home_team'], 'VIC') != VENUE_STATE.get(r['venue'], 'VIC')) else 0,
+        axis=1
     )
 
     return df
@@ -766,16 +799,16 @@ def calculate_cpi_metrics(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-def build_panel(df: pd.DataFrame) -> pd.DataFrame:
+def build_panel(df: pd.DataFrame, entity_col: str = "matchup_id") -> pd.DataFrame:
     """
     Create the panel DataFrame with a proper MultiIndex for linearmodels.
 
-    Entity = matchup_id  (the specific home-away combination)
+    Entity = entity_col  (e.g., matchup_id or matchup_directed_id)
     Time   = season
     """
     df = df.copy()
 
-    # Each (matchup_id, season) pair should be unique or we take the mean
+    # Each (entity_col, season) pair should be unique or we take the mean
     # (handles neutral venue edge cases or finals with the same matchup)
     agg_dict = {
         "home_fk_diff":   "mean",
@@ -817,23 +850,31 @@ def build_panel(df: pd.DataFrame) -> pd.DataFrame:
         "attendance":     "mean",
         "cpi_diff":       "mean",
         "game_time_mins": "mean",
+        "days_rest_diff": "mean",
+        "home_interstate_2020": "mean",
+        "matchup_id":     "first",
+        "matchup_directed_id": "first",
     }
     # Keep only columns that exist
     agg_dict = {k: v for k, v in agg_dict.items() if k in df.columns}
+    # Remove the entity col from agg_dict to prevent index collision on reset_index
+    if entity_col in agg_dict:
+        del agg_dict[entity_col]
 
     panel = (
         df
-        .groupby(["matchup_id", "season"])
+        .groupby([entity_col, "season"])
         .agg(agg_dict)
         .reset_index()
     )
 
-    panel = panel.set_index(["matchup_id", "season"])
+    panel = panel.set_index([entity_col, "season"])
 
     log.info(
-        "Panel built: %d entity-year observations  |  %d unique matchups",
+        "Panel built: %d entity-year observations  |  %d unique %s",
         len(panel),
-        panel.index.get_level_values("matchup_id").nunique(),
+        panel.index.get_level_values(entity_col).nunique(),
+        entity_col
     )
     return panel
 
@@ -842,85 +883,86 @@ def build_panel(df: pd.DataFrame) -> pd.DataFrame:
 # Phase 3 – Econometric Modelling
 # ---------------------------------------------------------------------------
 
-def run_models(panel: pd.DataFrame) -> dict:
+def run_models(panel_undirected: pd.DataFrame, panel_directed: pd.DataFrame) -> dict:
     """
-    Estimate three PanelOLS specifications.
+    Estimate five PanelOLS specifications separating causal effect from mediation.
 
     Returns a dict of {label: fitted_result}.
     """
     results = {}
 
-    # Drop rows where key variables are missing
-    base_vars = ["home_fk_diff", "deficit_ratio"]
-    full_vars  = base_vars + ["epi_z", "deficit_x_epi", "cpi_diff", "cp_diff", "kicks_diff", "clearance_diff"]
-    panel_clean = panel.dropna(subset=full_vars)
+    def clean(df, extra_vars=None):
+        base_vars = ["home_fk_diff", "deficit_ratio", "epi_z", "deficit_x_epi", "cpi_diff", 
+                     "days_rest_diff", "home_interstate_2020", "cp_diff", "kicks_diff", "clearance_diff"]
+        return df.dropna(subset=base_vars)
 
-    # --- Model 1: Base Fuzzy DiD ---
-    log.info("Fitting Model 1: Base Fuzzy DiD …")
+    panel_u = clean(panel_undirected)
+    panel_d = clean(panel_directed)
+
+    # --- Model 1: Baseline (Undirected FEs, No Controls) ---
+    log.info("Fitting Model 1: Baseline (Undirected FEs) …")
     m1 = PanelOLS.from_formula(
-        formula="home_fk_diff ~ deficit_ratio + EntityEffects + TimeEffects",
-        data=panel_clean,
+        formula="home_fk_diff ~ deficit_ratio + epi_z + deficit_x_epi + EntityEffects + TimeEffects",
+        data=panel_u,
         drop_absorbed=True,
     )
-    results["Model 1: Base Fuzzy DiD"] = m1.fit(
-        cov_type="clustered", cluster_entity=True
+    results["Model 1: Baseline (Undirected FEs)"] = m1.fit(
+        cov_type="clustered", cluster_entity=True, cluster_time=True
     )
 
-    # --- Model 2: Continuous DiD (with EPI interaction) ---
-    log.info("Fitting Model 2: Continuous DiD (+ EPI interaction) …")
+    # --- Model 2: Main Causal Spec (Directed FEs, No Controls) ---
+    log.info("Fitting Model 2: Main Causal (Directed FEs) …")
     m2 = PanelOLS.from_formula(
-        formula=(
-            "home_fk_diff ~ deficit_ratio + epi_z + deficit_x_epi "
-            "+ EntityEffects + TimeEffects"
-        ),
-        data=panel_clean,
+        formula="home_fk_diff ~ deficit_ratio + epi_z + deficit_x_epi + EntityEffects + TimeEffects",
+        data=panel_d,
         drop_absorbed=True,
     )
-    results["Model 2: Continuous DiD"] = m2.fit(
-        cov_type="clustered", cluster_entity=True
+    results["Model 2: Main Causal (Directed FEs)"] = m2.fit(
+        cov_type="clustered", cluster_entity=True, cluster_time=True
     )
 
-    # --- Model 3: Continuous DiD + Game-State Controls ---
-    log.info("Fitting Model 3: Continuous DiD + Game-State Controls …")
+    # --- Model 3: Hub Travel Robustness (Directed + Rest/Interstate Controls) ---
+    log.info("Fitting Model 3: Hub Travel Robustness …")
     m3 = PanelOLS.from_formula(
         formula=(
             "home_fk_diff ~ deficit_ratio + epi_z + deficit_x_epi "
-            "+ cp_diff + kicks_diff + clearance_diff "
+            "+ days_rest_diff + home_interstate_2020 "
             "+ EntityEffects + TimeEffects"
         ),
-        data=panel_clean,
+        data=panel_d,
         drop_absorbed=True,
     )
-    results["Model 3: Continuous DiD + Controls"] = m3.fit(
-        cov_type="clustered", cluster_entity=True
+    results["Model 3: Hub Robustness"] = m3.fit(
+        cov_type="clustered", cluster_entity=True, cluster_time=True
     )
 
-    # --- Model 4: Brand Bias Baseline ---
-    log.info("Fitting Model 4: Brand Bias Baseline …")
+    # --- Model 4: Brand Bias (Directed, Hub Controls + CPI) ---
+    log.info("Fitting Model 4: Brand Bias …")
     m4 = PanelOLS.from_formula(
         formula=(
-            "home_fk_diff ~ cpi_diff + cp_diff + kicks_diff + clearance_diff "
+            "home_fk_diff ~ cpi_diff + days_rest_diff + home_interstate_2020 "
             "+ EntityEffects + TimeEffects"
         ),
-        data=panel_clean,
+        data=panel_d,
         drop_absorbed=True,
     )
     results["Model 4: Brand Bias Baseline"] = m4.fit(
-        cov_type="clustered", cluster_entity=True
+        cov_type="clustered", cluster_entity=True, cluster_time=True
     )
 
-    # --- Model 5: The Horse Race ---
-    log.info("Fitting Model 5: The Horse Race …")
+    # --- Model 5: Mediation Specification (M3 + Post-Treatment Game State Controls) ---
+    log.info("Fitting Model 5: Mediation Specification …")
     m5 = PanelOLS.from_formula(
         formula=(
-            "home_fk_diff ~ deficit_x_epi + cpi_diff + cp_diff + kicks_diff + clearance_diff "
+            "home_fk_diff ~ deficit_x_epi + days_rest_diff + home_interstate_2020 "
+            "+ cp_diff + kicks_diff + clearance_diff "
             "+ EntityEffects + TimeEffects"
         ),
-        data=panel_clean,
+        data=panel_d,
         drop_absorbed=True,
     )
-    results["Model 5: The Horse Race"] = m5.fit(
-        cov_type="clustered", cluster_entity=True
+    results["Model 5: Mediation Spec (Game-State Controls)"] = m5.fit(
+        cov_type="clustered", cluster_entity=True, cluster_time=True
     )
 
     return results
@@ -1215,7 +1257,7 @@ def plot_coef_forest(results: dict,
                 ha="center", va="bottom", color=colour, fontsize=9,
             )
 
-        ax.set_yticks([0, 1, 2])
+        ax.set_yticks(list(range(n_models)))
         ax.set_yticklabels(
             [f"M{i+1}" for i in range(n_models)],
             fontsize=9, color="#9ca3af",
@@ -1343,22 +1385,23 @@ def main() -> None:
     featured = compute_epi(cleaned)
     featured = calculate_cpi_metrics(featured)
 
-    # -- 4. Build panel ------------------------------------------------
-    panel = build_panel(featured)
+    # -- 4. Build panels ------------------------------------------------
+    panel_u = build_panel(featured, entity_col="matchup_id")
+    panel_d = build_panel(featured, entity_col="matchup_directed_id")
 
     print("\n" + "-" * 60)
     print("      AFL 'Noise of Affirmation' - DiD Analysis Pipeline")
     print("-" * 60 + "\n")
     desc_cols = [
-        "home_fk_diff", "epi_z", "covid_x_epi",
+        "home_fk_diff", "epi_z", "covid_x_epi", "home_interstate_2020", "days_rest_diff",
         "cp_diff", "kicks_diff",
     ]
-    desc_cols = [c for c in desc_cols if c in panel.columns]
-    print(panel[desc_cols].describe().round(3).to_string())
+    desc_cols = [c for c in desc_cols if c in panel_d.columns]
+    print(panel_d[desc_cols].describe().round(3).to_string())
 
     print("\n  Season-level mean free kick differential:")
     print(
-        panel
+        panel_d
         .reset_index()
         .groupby("season")["home_fk_diff"]
         .mean()
@@ -1367,7 +1410,7 @@ def main() -> None:
     )
 
     # Parallel trends check: correlation of FKdiff with EPI pre-2020
-    pre2020_panel = panel[panel.index.get_level_values("season") < 2020]
+    pre2020_panel = panel_d[panel_d.index.get_level_values("season") < 2020]
     corr, pval = stats.pearsonr(
         pre2020_panel["epi_z"].dropna(),
         pre2020_panel["home_fk_diff"].reindex(
@@ -1378,15 +1421,15 @@ def main() -> None:
     print("  (Should be positive if EPI captures crowd partisanship)")
 
     # -- 6. Models ----------------------------------------------------
-    fitted = run_models(panel)
+    fitted = run_models(panel_u, panel_d)
     print_tables(fitted)
 
     # -- 7. Visualisations ---------------------------------------------
     log.info("Generating visualisations …")
     plot_free_kick_trend(featured, out_path="figure_free_kick_trend.png")
     plot_marginal_effect(
-        panel,
-        fitted["Model 3: Continuous DiD + Controls"],
+        panel_d,
+        fitted["Model 2: Main Causal (Directed FEs)"],
         out_path="figure_marginal_effect.png",
     )
     plot_coef_forest(fitted, out_path="figure_coefficient_forest.png")

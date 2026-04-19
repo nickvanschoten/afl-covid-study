@@ -68,10 +68,10 @@ def load_panel() -> tuple[pd.DataFrame, pd.DataFrame]:
     cleaned  = clean_data(raw)
     featured = compute_epi(cleaned)
     featured = calculate_cpi_metrics(featured)
-    panel    = build_panel(featured)
+    panel    = build_panel(featured, entity_col="matchup_directed_id")
 
     log.info("Panel loaded: %d obs, %d matchups",
-             len(panel), panel.index.get_level_values("matchup_id").nunique())
+             len(panel), panel.index.get_level_values("matchup_directed_id").nunique())
     return featured, panel
 
 
@@ -109,20 +109,20 @@ def task1_naive_attendance(panel: pd.DataFrame) -> None:
     # Naive interaction: deficit_ratio x raw attendance_z
     p["deficit_x_att"] = p["deficit_ratio"] * p["attendance_z"]
 
-    p = p.set_index(["matchup_id", "season"])
+    p = p.set_index(["matchup_directed_id", "season"])
     required = ["home_fk_diff", "deficit_ratio", "attendance_z",
-                "deficit_x_att", "cp_diff", "kicks_diff", "clearance_diff"]
+                "deficit_x_att", "days_rest_diff", "home_interstate_2020"]
     p_clean = p.dropna(subset=required)
 
     log.info("Task 1: fitting naive attendance model on %d obs ...", len(p_clean))
     m_naive = PanelOLS.from_formula(
         "home_fk_diff ~ deficit_ratio + attendance_z + deficit_x_att "
-        "+ cp_diff + kicks_diff + clearance_diff "
+        "+ days_rest_diff + home_interstate_2020 "
         "+ EntityEffects + TimeEffects",
         data=p_clean,
         drop_absorbed=True,
     )
-    res_naive = m_naive.fit(cov_type="clustered", cluster_entity=True)
+    res_naive = m_naive.fit(cov_type="clustered", cluster_entity=True, cluster_time=True)
 
     print(res_naive.summary.tables[1])
 
@@ -171,7 +171,7 @@ def task2_placebo(featured: pd.DataFrame) -> None:
 
     # Build a fresh panel with the placebo columns
     from afl_noise_affirmation_did import build_panel as _bp
-    p_placebo = _bp(df)
+    p_placebo = _bp(df, entity_col="matchup_directed_id")
 
     # Swap in the placebo columns (re-aggregate already happened above via build_panel)
     # We need the placebo columns to survive the aggregation - recalculate post-agg
@@ -179,23 +179,23 @@ def task2_placebo(featured: pd.DataFrame) -> None:
     pre_mask = p["season"] != 2018
     p["deficit_ratio_placebo"] = np.where(p["season"] == 2018, 1.0, 0.0)
     p["deficit_x_epi_placebo"] = p["deficit_ratio_placebo"] * p["epi_z"]
-    p = p.set_index(["matchup_id", "season"])
+    p = p.set_index(["matchup_directed_id", "season"])
 
     required = ["home_fk_diff", "deficit_ratio_placebo",
                 "epi_z", "deficit_x_epi_placebo",
-                "cp_diff", "kicks_diff", "clearance_diff"]
+                "days_rest_diff"]
     p_clean = p.dropna(subset=required)
 
     log.info("Task 2: placebo panel has %d obs (2012-2019, excl. 2020) ...",
              len(p_clean))
     m_placebo = PanelOLS.from_formula(
         "home_fk_diff ~ deficit_ratio_placebo + epi_z + deficit_x_epi_placebo "
-        "+ cp_diff + kicks_diff + clearance_diff "
+        "+ days_rest_diff "
         "+ EntityEffects + TimeEffects",
         data=p_clean,
         drop_absorbed=True,
     )
-    res_placebo = m_placebo.fit(cov_type="clustered", cluster_entity=True)
+    res_placebo = m_placebo.fit(cov_type="clustered", cluster_entity=True, cluster_time=True)
 
     print(res_placebo.summary.tables[1])
 
@@ -242,23 +242,23 @@ def task3_event_study(panel: pd.DataFrame,
         p[f"yr_{yr}"] = (p["season"] == yr).astype(float)
         p[f"epi_x_{yr}"] = p["epi_z"] * p[f"yr_{yr}"]
 
-    p = p.set_index(["matchup_id", "season"])
+    p = p.set_index(["matchup_directed_id", "season"])
 
     # Build formula: epi_z (reference-year level) + interactions for each year
     interaction_terms = " + ".join(f"epi_x_{yr}" for yr in non_ref_years)
     formula = (
         f"home_fk_diff ~ epi_z + {interaction_terms} "
-        f"+ cp_diff + kicks_diff + clearance_diff "
+        f"+ days_rest_diff + home_interstate_2020 "
         f"+ EntityEffects + TimeEffects"
     )
 
-    required_base = ["home_fk_diff", "epi_z", "cp_diff", "kicks_diff", "clearance_diff"]
+    required_base = ["home_fk_diff", "epi_z", "days_rest_diff", "home_interstate_2020"]
     required_int  = [f"epi_x_{yr}" for yr in non_ref_years]
     p_clean = p.dropna(subset=required_base)
 
     log.info("Task 3: fitting event-study model on %d obs ...", len(p_clean))
     m_es = PanelOLS.from_formula(formula, data=p_clean, drop_absorbed=True)
-    res_es = m_es.fit(cov_type="clustered", cluster_entity=True)
+    res_es = m_es.fit(cov_type="clustered", cluster_entity=True, cluster_time=True)
 
     # Extract coefficients for the EPIxYear interaction terms
     coefs, lows, highs, yr_labels = [], [], [], []
