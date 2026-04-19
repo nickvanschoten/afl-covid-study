@@ -252,7 +252,7 @@ The officials are not being swayed by the cheer squad in the data we can observe
 | **Standard Errors** | Two-way cluster-robust (clustered by specified Entity and Time parameters) |
 | **Parallel Trends Validation** | Event-study: EPI × Year dummies, 2019 reference, effectively verified null pre-trend. |
 | **Placebo Test** | Fake treatment 2018 (dropped 2020): `deficit_x_epi_placebo` coef = +0.222, p = 0.291 |
-| **Naive Benchmark** | Raw attendance model: `deficit × att_z` coef = +0.871, p = 0.508 |
+| **Naive Benchmark** | Raw attendance model: `deficit × raw_attendance_z` coef = +2.00, p = 0.050 |
 | **Rate Denominator** | Actual elapsed game time (`game_time_mins`), per-60-minutes normalisation |
 | **Game Time** | 2012–2019 mean = 122.0 min; 2020 mean = 101.5 min; empirical ratio = 0.8374 |
 | **CPI** | `(mem_z + lag_win_pct_z + lag_primetime_z) / 3`, within-season standardised, single t-1 lag |
