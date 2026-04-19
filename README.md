@@ -23,8 +23,6 @@ footy/
 ├── afl_noise_affirmation_did.py     # Core ingestion pipeline + DiD econometric models
 ├── econometric_robustness.py        # Identification checks (naive model, placebo, event-study)
 ├── mechanism_verification.py        # Mechanism tests (EPI strat, FK decomp, TK reconciliation)
-├── tactical_compression_eda.py      # Game-style EDA (CPR, TR, UMR year-over-year)
-├── fatigue_vs_intensity_eda.py      # Within-2020 rest-day micro-climate analysis
 │
 ├── articledesc.md                   # Full academic paper description (peer-review revised)
 ├── FINDINGS.md                      # Plain-English summary of results
@@ -34,11 +32,9 @@ footy/
 ├── figure_fk_covid_density.png      # Figure 2: Baseline vs 2020 convergence
 ├── figure_event_study.png           # Figure 3: Parallel trends event-study plot
 ├── figure_coefficient_forest.png    # Figure 4: Five-model coefficient forest plot
-├── figure_epi_stratification.png    # Figure 5: High-EPI vs Low-EPI group trajectories
+├── figure_residualized_stratification.png # Figure 5: Residualized EPI stratification
 ├── figure_tackle_rate_ts.png        # Figure 6: TK/60min and FK/60min time series
 ├── figure_trench_warfare.png        # Figure 7: Era comparison box plots
-├── figure_game_style_evolution.png  # Supplementary: CPR, TR, UMR year-over-year
-├── figure_rest_impact.png           # Supplementary: rest-day fatigue micro-climate
 │
 ├── afl_cache/
 │   └── raw_panel.parquet            # Committed panel cache (1,736 matches × 38 cols)
@@ -89,27 +85,7 @@ python mechanism_verification.py
 
 Produces:
 - **Console**: EPI stratification table, FK proxy decomposition table, tackle rate reconciliation
-- **Output**: `figure_epi_stratification.png`, `figure_tackle_rate_ts.png`
-
-### Step 4 — Game-Style EDA
-
-```bash
-python tactical_compression_eda.py
-```
-
-Produces:
-- **Console**: T-test results for CPR, TR, UMR
-- **Output**: `figure_baseline_density.png` (TR KDE), `figure_covid_density.png` (UMR KDE), `figure_game_style_evolution.png`
-
-### Step 5 — Rest-Day Micro-Climate (Supplementary)
-
-```bash
-python fatigue_vs_intensity_eda.py
-```
-
-Produces:
-- **Console**: Short-rest vs normal-rest comparison within 2020
-- **Output**: `figure_rest_impact.png`
+- **Output**: `figure_residualized_stratification.png`, `figure_tackle_rate_ts.png`
 
 ---
 
@@ -133,7 +109,7 @@ The historical attendance baseline for 2020 games uses a strictly pre-treatment 
 ### Club Prestige Index (CPI)
 
 ```
-CPI_raw   = (mem_z + lag_win_pct_z + lag_primetime_pct_z) / 3
+CPI_raw   = (home_att_z + lag_win_pct_z + lag_primetime_pct_z) / 3
 CPI_score = within-season z-score of CPI_raw
 CPI_diff  = home_CPI - away_CPI
 ```
@@ -177,11 +153,9 @@ The AFL Tables data provides: free kicks for/against, contested possessions, dis
 | `figure_fk_covid_density.png` | Baseline vs. 2020 convergence overlay | `afl_noise_affirmation_did.py` |
 | `figure_event_study.png` | EPI×Year event-study parallel trends plot | `econometric_robustness.py` |
 | `figure_coefficient_forest.png` | Five-model coefficient forest plot | `afl_noise_affirmation_did.py` |
-| `figure_epi_stratification.png` | High vs. Low EPI quartile FK differential 2012–2020 | `mechanism_verification.py` |
+| `figure_residualized_stratification.png` | Residualized EPI quartile FK differential 2012–2020 | `mechanism_verification.py` |
 | `figure_tackle_rate_ts.png` | TK/60min + FK/60min year-over-year time series | `mechanism_verification.py` |
-| `figure_trench_warfare.png` | Era comparison box plots: FE, CPR, TK/60, FK/60 | `tactical_compression_eda.py` |
-| `figure_game_style_evolution.png` | CPR, TR, UMR year-over-year evolution | `tactical_compression_eda.py` |
-| `figure_rest_impact.png` | Short vs. normal rest within 2020 | `fatigue_vs_intensity_eda.py` |
+| `figure_trench_warfare.png` | Era comparison box plots: FE, CPR, TK/60, FK/60 | Static (Legacy scripts) |
 
 ---
 
