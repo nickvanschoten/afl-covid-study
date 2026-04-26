@@ -1,0 +1,58 @@
+17:03:17  INFO      Loaded 2339 rows covering seasons 2012–2023
+
+========================================================================
+  QUARTER LENGTH CAUSALITY ANALYSIS
+========================================================================
+
+
+========================================================================
+  PHASE 1 – REVERSION TEST: Three-Era Comparison
+========================================================================
+  Hypothesis: If 16-min quarters caused congestion, 2021-2023 stats
+  must revert to mirror the 2012-2019 baseline, isolating 2020 as
+  the sole structural anomaly.
+
+
+  --- Contested Possession Rate (CPR) ---
+  Era                            N      Mean       Std
+  ----------------------------------------------------
+  Baseline (2012-2019)        1582    0.3843    0.0420
+  COVID Hub (2020)             153    0.3989    0.0382
+  Recovery (2021-2023)         603    0.3758    0.0355
+
+  Comparison                        t-stat     p-value  Verdict
+  --------------------------------------------------------------
+  Baseline vs COVID                 -4.455  1.4359e-05     ***
+  COVID vs Recovery                 +6.744  1.3034e-10     ***
+  Baseline vs Recovery              +4.726  2.5397e-06     ***
+
+  --- Forward Efficiency (MI50 / I50) ---
+  Era                            N      Mean       Std
+  ----------------------------------------------------
+  Baseline (2012-2019)        1582    0.2258    0.0568
+  COVID Hub (2020)             153    0.2050    0.0553
+  Recovery (2021-2023)         603    0.2234    0.0524
+
+  Comparison                        t-stat     p-value  Verdict
+  --------------------------------------------------------------
+  Baseline vs COVID                 +4.426  1.6412e-05     ***
+  COVID vs Recovery                 -3.703  2.6770e-04     ***
+  Baseline vs Recovery              +0.944  3.4528e-01      ns
+
+  SNAP-BACK VERDICT:
+Traceback (most recent call last):
+  File "C:\Users\Testing\GitHub\footy\quarter_length_causality.py", line 454, in <module>
+    main()
+    ~~~~^^
+  File "C:\Users\Testing\GitHub\footy\quarter_length_causality.py", line 437, in main
+    run_reversion_test(df)
+    ~~~~~~~~~~~~~~~~~~^^^^
+  File "C:\Users\Testing\GitHub\footy\quarter_length_causality.py", line 160, in run_reversion_test
+    print(f"    CPR  : Baseline={b_cpr:.4f}  2020={c_cpr:.4f}  Recovery={r_cpr:.4f}  "
+    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+          f"\u2192  {'REVERSION CONFIRMED \u2713' if cpr_revert else 'No clear reversion'}")
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Python314\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\u2192' in position 58: character maps to <undefined>

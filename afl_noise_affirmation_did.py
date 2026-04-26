@@ -57,7 +57,7 @@ log = logging.getLogger(__name__)
 # Constants & Configuration
 # ---------------------------------------------------------------------------
 BASE_URL = "https://afltables.com"
-SEASONS = list(range(2012, 2021))          # 2012–2020 inclusive
+SEASONS = list(range(2012, 2024))          # 2012–2023 inclusive
 REQUEST_DELAY = 0.2                         # seconds between HTTP calls
 CACHE_DIR = Path("afl_cache")              # local cache directory
 CACHE_DIR.mkdir(exist_ok=True)
