@@ -9,8 +9,8 @@ The 2020 AFL season provides a rare natural experiment to isolate this mechanism
 This paper argues that this conclusion is premature and econometrically unsound. Our contribution is threefold. First, we develop a novel continuous treatment metric—the **Expected Partisanship Index (EPI)**—to resolve the severe measurement error present in raw attendance figures. Second, we deploy a **Continuous Treatment Difference-in-Differences (DiD)** framework and demonstrate, across five Panel OLS specifications with entity and time fixed effects, that the EPI crowd-pressure coefficient provides no statistically detectable evidence of bias. We validate this result through four formal identification checks: a naive attendance benchmark, a 2017 placebo test, an event-study parallel trends validation, and marginal absolute rest distribution tests. Third, we demonstrate that the observed convergence in 2020 free-kick differentials was driven not by referee psychology, but by a structural collapse in dynamic gameplay into a match-long, congested scrum—what we term "Tactical Compression"—caused by the absolute physiological shock of an unprecedented hub season.
 
 We structure the paper as follows. Section 2 presents the motivating distributional evidence. Section 3 details the data and formal construction of our treatment and control indices. Section 4 outlines the identification strategy, including causal structure, key assumptions, and their empirical defences. Section 5 presents the main umpire-bias results. Section 6 investigates the physiological and tactical mechanisms. Section 7 concludes with appropriate scope limitations.
-![Figure 1 - Descriptor](figure_fk_baseline_density.png)
-![Figure 2 - Descriptor](figure_fk_covid_density.png)
+![Figure 1 - Descriptor](figures/figure_fk_baseline_density.png)
+![Figure 2 - Descriptor](figures/figure_fk_covid_density.png)
 
 ---
 
@@ -178,7 +178,7 @@ Extending the regression via an Associational Decomposition (Model 5) demonstrat
 | Bottom 25% Least Hostile | +0.000 | −1.638 |
 
 Once baseline team strength is removed, both groups drop below zero in 2020. Critically, the magnitude diverges sharply: the Bottom 25% (Least Hostile) collapses by −1.638 residual free kicks, while the Top 25% (Most Hostile) falls by only −0.154—a 1.48-foul gap that directly contradicts the crowd-pressure prediction. If crowd removal drove the convergence, the most hostile matchups should have shown the largest collapse; instead they showed the smallest. This pattern is consistent with a global fatigue mechanism operating across all matchup types, precisely as our regression null implies.
-![Figure 5 - Descriptor](figure_residualized_stratification.png)
+![Figure 5 - Descriptor](figures/figure_residualized_stratification.png)
 
 ### 5.2 Institutional Brand Bias: Also Null
 
@@ -252,8 +252,8 @@ The CP, clearance, and tackle differentials all narrow toward zero in 2020, cons
 **Quarter-Level Evidence.** Reviewing within-game dynamics, we parse per-quarter scoring margins from cached HTML for all 1,736 matches. In the baseline era, per-quarter home scoring margins are broadly uniform. The home advantage is distributed across the full contest, consistent with a structural territorial dominance rather than a narrowly concentrated Q4 surge.
 
 This confirms that the free-kick differential convergence is distinct from the scoring margin channel. The mechanism is more fundamental: contest dynamics across the whole match were structurally compressed into neutral scrums by democratised fatigue, flattening the wide-open positional conditions that generate FK asymmetry.
-![Figure 6 - Descriptor](figure_tackle_rate_ts.png)
-![Figure 7 - Descriptor](figure_trench_warfare.png)
+![Figure 6 - Descriptor](figures/figure_tackle_rate_ts.png)
+![Figure 7 - Descriptor](figures/figure_trench_warfare.png)
 
 ---
 

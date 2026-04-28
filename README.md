@@ -31,14 +31,15 @@ footy/
 ├── FINDINGS.md                       # Plain-English summary (peer-review revised, final)
 ├── README.md                         # This file
 │
-├── figure_fk_baseline_density.png    # Figure 1: Baseline FK differential distribution
-├── figure_fk_covid_density.png       # Figure 2: Baseline vs. 2020 convergence
-├── figure_event_study.png            # Figure 3: Parallel trends event-study (ref=2016)
-├── figure_coefficient_forest.png     # Figure 4: Five-model coefficient forest plot
-├── figure_residualized_stratification.png  # Figure 5: Residualized EPI stratification
-├── figure_tackle_rate_ts.png         # Figure 6: TK/60 and FK/60 time series
-├── figure_trench_warfare.png         # Figure 7: Era comparison box plots
-├── figure_causality_proof.png        # Figure 8: Quarter-length causality tests
+├── figures/
+│   ├── figure_fk_baseline_density.png          # Figure 1: Baseline FK differential distribution
+│   ├── figure_fk_covid_density.png             # Figure 2: Baseline vs. 2020 convergence
+│   ├── figure_event_study.png                  # Figure 3: Parallel trends event-study (ref=2016)
+│   ├── figure_coefficient_forest.png           # Figure 4: Five-model coefficient forest plot
+│   ├── figure_residualized_stratification.png  # Figure 5: Residualized EPI stratification
+│   ├── figure_tackle_rate_ts.png               # Figure 6: TK/60 and FK/60 time series
+│   ├── figure_trench_warfare.png               # Figure 7: Era comparison box plots
+│   └── figure_causality_proof.png              # Figure 8: Quarter-length causality tests
 │
 ├── afl_cache/
 │   └── raw_panel.parquet             # Committed panel cache (2,339 matches × 38 cols, 2012–2023)
@@ -125,8 +126,8 @@ Addresses six structural critiques identified in the second review round:
 python quarter_length_causality.py
 ```
 
-Produces the "Recovery Era" reversion test (2021–2023 post-hub data) and Q4 fade analysis:
-- **Output**: `figure_causality_proof.png`
+Produces the "Recovery Era" reversion test (2021–2023 post-hub data):
+- **Output**: `figures/figure_causality_proof.png`
 
 ---
 
@@ -244,17 +245,17 @@ The AFL Tables data provides: free kicks for/against, contested possessions, dis
 
 | File | Description | Produced by |
 |---|---|---|
-| `figure_fk_baseline_density.png` | Home FK differential KDE: 2012–2019 baseline | `afl_noise_affirmation_did.py` |
-| `figure_fk_covid_density.png` | Baseline vs. 2020 convergence overlay | `afl_noise_affirmation_did.py` |
-| `figure_event_study.png` | EPI×Year event-study parallel trends (ref=2016) | `econometric_robustness.py` |
-| `figure_coefficient_forest.png` | Five-model coefficient forest plot | `afl_noise_affirmation_did.py` |
-| `figure_residualized_stratification.png` | Residualized EPI quartile FK differential 2012–2020 | `mechanism_verification.py` |
-| `figure_tackle_rate_ts.png` | TK/60 + FK/60 nominal time series | `mechanism_verification.py` |
-| `figure_trench_warfare.png` | Era comparison box plots: FE, CP/60, TK/60, FK/60 | `mechanism_verification.py` |
-| `figure_causality_proof.png` | V-shape FwdEff reversion test + Q4 scoring variance | `quarter_length_causality.py` |
+| `figures/figure_fk_baseline_density.png` | Home FK differential KDE: 2012–2019 baseline | `afl_noise_affirmation_did.py` |
+| `figures/figure_fk_covid_density.png` | Baseline vs. 2020 convergence overlay | `afl_noise_affirmation_did.py` |
+| `figures/figure_event_study.png` | EPI×Year event-study parallel trends (ref=2016) | `econometric_robustness.py` |
+| `figures/figure_coefficient_forest.png` | Five-model coefficient forest plot | `afl_noise_affirmation_did.py` |
+| `figures/figure_residualized_stratification.png` | Residualized EPI quartile FK differential 2012–2020 | `mechanism_verification.py` |
+| `figures/figure_tackle_rate_ts.png` | TK/60 + FK/60 nominal time series | `mechanism_verification.py` |
+| `figures/figure_trench_warfare.png` | Era comparison box plots: FE, CP/60, TK/60, FK/60 | `mechanism_verification.py` |
+| `figures/figure_causality_proof.png` | V-shape FwdEff reversion test | `quarter_length_causality.py` |
 
 ---
 
 ## Citation & Author Note
 
-This project was developed as a portfolio demonstration of applied causal inference techniques in sports analytics, including natural-experiment DiD design, custom treatment variable engineering, and identification robustness testing. The econometric architecture follows Callaway & Sant'Anna (2021) for heterogeneous-treatment DiD and Angrist & Pischke (2009) for continuous-treatment identification strategy.
+
