@@ -1,4 +1,4 @@
-<img width="2042" height="1612" alt="figure_tackle_rate_ts" src="https://github.com/user-attachments/assets/22b85512-d280-4eeb-9568-c6f07c26ee0b" /># The Ghost Town Effect: Causal Inference, Umpire Bias, and Tactical Compression in the Australian Football League
+# The Ghost Town Effect: Causal Inference, Umpire Bias, and Tactical Compression in the Australian Football League
 
 ## 1. Introduction
 
