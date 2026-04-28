@@ -608,12 +608,19 @@ def clean_data(df: pd.DataFrame) -> pd.DataFrame:
     df['days_rest_diff'] = df['Home_Days_Rest'].fillna(7) - df['Away_Days_Rest'].fillna(7)
 
     # --- Hub Location Control ---
-    # Determine if 'home' team is playing outside their home state in 2020
-    df['home_interstate_2020'] = df.apply(
-        lambda r: 1 if (r['covid_season'] == 1 and TEAM_STATE.get(r['home_team'], 'VIC') != VENUE_STATE.get(r['venue'], 'VIC')) else 0,
-        axis=1
-    )
+    # Determine relative interstate disadvantage
+    def _relative_interstate(r):
+        if r.get('covid_season', 0) != 1: return 0
+        home_dis = TEAM_STATE.get(r['home_team'], 'VIC') != VENUE_STATE.get(r['venue'], 'VIC')
+        away_dis = TEAM_STATE.get(r['away_team'], 'VIC') != VENUE_STATE.get(r['venue'], 'VIC')
+        return int(home_dis) - int(away_dis)
+        
+    df['relative_interstate_dis'] = df.apply(_relative_interstate, axis=1)
 
+    df['home_rest_abs'] = df['Home_Days_Rest'].fillna(7)
+    df['away_rest_abs'] = df['Away_Days_Rest'].fillna(7)
+    df['nominal_game_time'] = np.where(df['season'] == 2020, 64.0, 80.0)
+    
     return df
 
 
@@ -857,7 +864,10 @@ def build_panel(df: pd.DataFrame, entity_col: str = "matchup_id") -> pd.DataFram
         "cpi_diff":       "mean",
         "game_time_mins": "mean",
         "days_rest_diff": "mean",
-        "home_interstate_2020": "mean",
+        "home_rest_abs": "mean",
+        "away_rest_abs": "mean",
+        "nominal_game_time": "mean",
+        "relative_interstate_dis": "mean",
         "matchup_id":     "first",
         "matchup_directed_id": "first",
     }
@@ -899,7 +909,7 @@ def run_models(panel_undirected: pd.DataFrame, panel_directed: pd.DataFrame) -> 
 
     def clean(df, extra_vars=None):
         base_vars = ["home_fk_diff", "deficit_ratio", "epi_z", "deficit_x_epi", "cpi_diff", 
-                     "days_rest_diff", "home_interstate_2020", "cp_diff", "kicks_diff", "clearance_diff"]
+                     "days_rest_diff", "relative_interstate_dis", "cp_diff", "kicks_diff", "clearance_diff"]
         return df.dropna(subset=base_vars)
 
     panel_u = clean(panel_undirected)
@@ -932,7 +942,7 @@ def run_models(panel_undirected: pd.DataFrame, panel_directed: pd.DataFrame) -> 
     m3 = PanelOLS.from_formula(
         formula=(
             "home_fk_diff ~ deficit_ratio + epi_z + deficit_x_epi "
-            "+ days_rest_diff + home_interstate_2020 "
+            "+ days_rest_diff + relative_interstate_dis "
             "+ EntityEffects + TimeEffects"
         ),
         data=panel_d,
@@ -946,7 +956,7 @@ def run_models(panel_undirected: pd.DataFrame, panel_directed: pd.DataFrame) -> 
     log.info("Fitting Model 4: Brand Bias …")
     m4 = PanelOLS.from_formula(
         formula=(
-            "home_fk_diff ~ cpi_diff + days_rest_diff + home_interstate_2020 "
+            "home_fk_diff ~ cpi_diff + days_rest_diff + relative_interstate_dis "
             "+ EntityEffects + TimeEffects"
         ),
         data=panel_d,
@@ -960,7 +970,7 @@ def run_models(panel_undirected: pd.DataFrame, panel_directed: pd.DataFrame) -> 
     log.info("Fitting Model 5: Mediation Specification …")
     m5 = PanelOLS.from_formula(
         formula=(
-            "home_fk_diff ~ deficit_x_epi + days_rest_diff + home_interstate_2020 "
+            "home_fk_diff ~ deficit_x_epi + days_rest_diff + relative_interstate_dis "
             "+ cp_diff + kicks_diff + clearance_diff "
             "+ EntityEffects + TimeEffects"
         ),
@@ -1399,7 +1409,7 @@ def main() -> None:
     print("      AFL 'Noise of Affirmation' - DiD Analysis Pipeline")
     print("-" * 60 + "\n")
     desc_cols = [
-        "home_fk_diff", "epi_z", "covid_x_epi", "home_interstate_2020", "days_rest_diff",
+        "home_fk_diff", "epi_z", "covid_x_epi", "relative_interstate_dis", "days_rest_diff",
         "cp_diff", "kicks_diff",
     ]
     desc_cols = [c for c in desc_cols if c in panel_d.columns]

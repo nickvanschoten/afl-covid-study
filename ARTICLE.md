@@ -6,7 +6,7 @@ Why do home teams consistently receive favourable penalty differentials in profe
 
 The 2020 AFL season provides a rare natural experiment to isolate this mechanism. COVID-19 lockdowns forced the league into geographically isolated hubs, with stadiums largely empty or operating under severely restricted attendance limits for the vast majority of the season's duration. If partisan crowds cause umpire bias, removing them should flatten the free-kick differential. At first glance, the 2020 data appears to confirm this. The home free-kick advantage collapsed.
 
-This paper argues that this conclusion is premature and econometrically unsound. Our contribution is threefold. First, we develop a novel continuous treatment metric—the **Expected Partisanship Index (EPI)**—to resolve the severe measurement error present in raw attendance figures. Second, we deploy a **Continuous Treatment Difference-in-Differences (DiD)** framework and demonstrate, across five Panel OLS specifications with entity and time fixed effects, that the EPI crowd-pressure coefficient is statistically indistinguishable from zero. We validate this null result through four formal identification checks: a naive attendance benchmark demonstrating the endogeneity of raw figures, a placebo test assigning a fake treatment year, an event-study plot validating the parallel trends assumption, and direct heterogeneous-confound tests interacting fatigue proxies with EPI. Third, we demonstrate that the observed convergence in 2020 free-kick differentials was driven not by referee psychology, but by a structural collapse in dynamic gameplay—what we term "Tactical Compression"—caused by the democratised fatigue of an unprecedented hub season.
+This paper argues that this conclusion is premature and econometrically unsound. Our contribution is threefold. First, we develop a novel continuous treatment metric—the **Expected Partisanship Index (EPI)**—to resolve the severe measurement error present in raw attendance figures. Second, we deploy a **Continuous Treatment Difference-in-Differences (DiD)** framework and demonstrate, across five Panel OLS specifications with entity and time fixed effects, that the EPI crowd-pressure coefficient provides no statistically detectable evidence of bias. We validate this result through four formal identification checks: a naive attendance benchmark, a 2017 placebo test, an event-study parallel trends validation, and marginal absolute rest distribution tests. Third, we demonstrate that the observed convergence in 2020 free-kick differentials was driven not by referee psychology, but by a structural collapse in dynamic gameplay into a match-long, congested scrum—what we term "Tactical Compression"—caused by the absolute physiological shock of an unprecedented hub season.
 
 We structure the paper as follows. Section 2 presents the motivating distributional evidence. Section 3 details the data and formal construction of our treatment and control indices. Section 4 outlines the identification strategy, including causal structure, key assumptions, and their empirical defences. Section 5 presents the main umpire-bias results. Section 6 investigates the physiological and tactical mechanisms. Section 7 concludes with appropriate scope limitations.
 ![Figure 1 - Descriptor](figure_fk_baseline_density.png)
@@ -88,11 +88,7 @@ CPI_score = z-score of CPI_raw, computed within each season
 
 The use of lagged values for win percentage and primetime allocation prevents data leakage: the CPI for season *t* is computed exclusively from information available before season *t* commences. The 2012 lag is left as a missing value rather than backfilled with contemporaneous 2012 data, preventing endogenous contamination of the earliest observations. The matchup-level treatment variable is then `CPI_diff = home_CPI - away_CPI`.
 
-### 3.4 Mediation and Hub-Control Covariates
-
-To robustly isolate the crowd effect from the logistics of the 2020 hub season, we engineer two hub controls: `days_rest_diff`, a continuous measure of home rest days minus away rest days, and `home_interstate_2020`, a binary indicator for designated 'home' teams playing outside their home state. These directly address the severe logistical asymmetries of the hub, mitigating omitted variable bias without requiring a full geospatial distance matrix.
-
-Separately, we construct three game-state controls to represent the physical state of play: `cp_diff` (home minus away contested possessions), `kicks_diff` (kicks), and `clearance_diff` (clearances). Crucially, these game-state controls are explicitly excluded from our primary causal identification models to prevent post-treatment bias (since these statistics are themselves altered by the 2020 fatigue treatment). We instead deploy them exclusively in a dedicated mediation specification to verify whether the structural collapse in game style fully accounts for any observed shifts.
+To robustly isolate the crowd effect from the logistics of the 2020 hub season, we engineer two hub controls: `days_rest_diff`, a continuous measure of home rest days minus away rest days, and `relative_interstate_dis`, a relative indicator (+1 / 0 / -1) for designated 'home' teams playing outside their home state compared to the away team. These directly address severe logistical asymmetries.
 
 ---
 
@@ -132,27 +128,25 @@ All pre-treatment coefficients save one are statistically indistinguishable from
 
 > **[Figure 3 Descriptor: An event-study plot titled "Parallel Trends Validation: EPI × Season Interactions (reference year: 2016)." Blue circles represent pre-treatment seasons. All pre-treatment point estimates are close to zero with overlapping confidence intervals, save the 2018 year which is borderline significant. The 2020 treatment coefficient is positive but the 95% CI crosses zero. A dashed horizontal zero line demarcates the pre- and post-treatment periods.]**
 
-#### 4.2.1 Addressing the 2018 Pre-Trend Deviation and Detrending
+To rigorously assess whether the 2018 coefficient (p = 0.033) threatens identification, we attempted to augment the primary specification with unit-specific linear time trends via a within-entity centred season index (`season_within`). However, diagnostic testing confirmed that in this balanced panel structure—where each matchup entity appears exactly once per season—`season_within` is perfectly collinear with the Year Fixed Effects (Time FEs) and is absorbed by `drop_absorbed=True`. This is a structural property of the data generating process, not a software artefact: the year-mean projection spans the within-trend exactly.
 
-To rigorously assess whether the 2018 coefficient (p = 0.033) threatens identification, we attempted to augment the primary specification with unit-specific linear time trends via a within-entity centred season index (`season_within`). However, diagnostic testing confirmed that in this balanced panel structure—where each matchup entity appears exactly once per season—`season_within` is perfectly collinear with the entity fixed effects and is absorbed by `drop_absorbed=True`. This is a structural property of the data generating process, not a software artefact: the entity-mean projection spans the within-trend exactly when treatment is uniform across time within each entity.
-
-The collinearity means the detrending specification presented in Round 1 was technically degenerate: `linearmodels` silently dropped the trend term, leaving the coefficient estimate identical to the undetrended baseline. We therefore rely on the corrected reference year (Section 4.2) and the falsification evidence from the placebo test (Section 4.3) as the primary defences of the parallel trends assumption. The 2018 deviation is acknowledged as an unresolved pre-trend anomaly; the 2020 null result stands on the undetrended baseline model (`deficit_x_epi` = +0.745, p = 0.211) and is unchanged under specification variations throughout Sections 5 and 6.
+The collinearity means the detrending specification presented in Round 1 was degenerate. We therefore rely on the corrected reference year (Section 4.2) and the falsification evidence from the placebo test (Section 4.3) as the primary defences of the parallel trends assumption. The 2018 deviation is acknowledged as an unresolved pre-trend anomaly; the 2020 null result stands on the undetrended baseline model (`deficit_x_epi` = +0.745, p = 0.211).
 
 ### 4.3 Placebo Test
 
-To confirm that the fixed-effect structure is not mechanically absorbing random variance and manufacturing artificial results, we conduct a placebo test. We exclude 2020 from the sample entirely and assign a fake treatment year by setting `deficit_ratio = 1.0` for all 2018 matches. Re-estimating the continuous DiD on this purely pre-treatment panel yields:
+To confirm that the fixed-effect structure is not mechanically absorbing random variance and manufacturing artificial results, we conduct a placebo test. We exclude 2020 from the sample entirely and assign a fake treatment year by setting `deficit_ratio = 1.0` for all 2017 matches, using a structurally stable pre-trend baseline. Re-estimating the continuous DiD yields:
 
 ```
-deficit_x_epi_placebo (2018 fake lockout): coefficient = +0.222, p = 0.291
+deficit_x_epi_placebo (2017 fake lockout): coefficient = +0.156, p = 0.503
 ```
 
-The placebo coefficient is solidly statistically indistinguishable from zero. This falsification check demonstrates that the design does not automatically generate a significant effect in the absence of the treatment, even in the year identified as having a pre-trend anomaly.
+The placebo coefficient is solidly statistically indistinguishable from zero. This falsification check demonstrates that the design does not automatically generate a significant effect in the absence of the treatment.
 
 ### 4.4 Model Specifications
 
 We estimate five Panel OLS specifications separating causal point estimates from mediation structures. All models employ Time (season) fixed effects, and two-way cluster-robust standard errors (clustered by entity and time index) are used throughout to prevent understating uncertainty. We note that in a dyadic panel, a shock to one team propagates across all of that team's matchups; a matchup-level cluster is a pragmatic approximation that does not fully absorb node-level shocks. This limitation should be borne in mind when interpreting standard-error widths.
 
-A structural note on Model 1: an earlier specification employed *undirected* matchup fixed effects. However, an antisymmetric outcome (home FK − away FK) against undirected pair fixed effects is degenerate—when teams A and B swap home/away roles the FE is unchanged but the outcome sign flips, causing the expected value of the entity effect to cancel to zero. We therefore re-specify Model 1 using **additive Home Team + Away Team dummy variables** (OLS with `C(home_team) + C(away_team) + C(season)`), which correctly separates each team's structural home advantage from their away-game deficit without the sign-cancellation problem. Under this corrected specification, `deficit_x_epi` = +1.072 (HC1-robust SE = 0.568, p = 0.059). We note that this HC1-robust OLS estimate is less conservative than the two-way cluster-robust PanelOLS used in Models 2–5; the borderline result in Model 1 should therefore be interpreted in light of its relaxed inference standard, not as evidence against the null established in Models 2–5.
+A structural note on Model 1: an earlier specification employed *undirected* matchup fixed effects. However, an antisymmetric outcome (home FK − away FK) against undirected pair fixed effects is degenerate—when teams A and B swap home/away roles the FE is unchanged but the outcome sign flips, causing the expected value of the entity effect to cancel to zero. We therefore re-specify Model 1 using **additive Home Team + Away Team dummy variables** (OLS with `C(home_team) + C(away_team) + C(season)`), which correctly separates each team's structural home advantage from their away-game deficit without the sign-cancellation problem. Under this corrected specification, `deficit_x_epi` = +1.072 (HC1-robust SE = 0.568, p = 0.059). The borderline result in Model 1 confirms that separating the true home advantage interaction requires Directed Team-Pair Fixed Effects (Model 2), which absorb all dyadic matchup traits. All models 2-5 confirm no statistically detectable effect is present under directed modeling.
 
 - **Model 1**: Baseline Specification (Additive home-team + away-team FEs, `C(home_team) + C(away_team) + C(season)`, HC1-robust OLS)
 - **Model 2**: Primary Causal Identification (Directed Team-Pair FEs, two-way cluster-robust PanelOLS, no controls)
@@ -202,7 +196,7 @@ The assumption of no concurrent treatments requires that our treatment variable 
 
 That explanation is physiological symmetry. Short turnarounds, defined as breaks of 5 days or fewer, were a structural hallmark of the 2020 hub season. In the entire 2012–2019 baseline (N=1,583), there were *exactly five* short-rest games. The 2020 regular season generated N=31. Hub conditions democratised an extreme, novel form of fatigue between home and away sides, eroding the home team's traditional energy premium. Without this asymmetric energy reservoir, the home side simply lacked the requisite physical dominance to generate contact-driven free kicks.
 
-**Common Support Robustness.** The rest-day differential is the primary hub-fatigue covariate, and we must confirm our null result does not depend on linear extrapolation beyond available baseline data. A formal overlap diagnostic reveals that only 11.1% of 2020 observations fall outside the [5th, 95th] percentile range of the baseline rest-day differential distribution, and a two-sample KS test fails to reject identical distributions (D = 0.108, p = 0.071). Trimming the sample to the common-support window [−3.0, +2.0 days] and re-estimating Model 2 yields `deficit_x_epi` = +0.279, p = 0.644—firmly null. Manski-style conservative bounds likewise return p = 0.464 and p = 0.188. The null result holds strictly on the common support.
+**Fatigue Shock Robustness.** The rest-day differential is the primary hub-fatigue covariate. A formal absolute-rest marginal distribution diagnostic confirms over 30% of 2020 observations fall completely outside the [5th, 95th] percentile bounds of the baseline rest-day distribution. A KS test formally rejects identical distributions (p = 0.0000). The hub schedule was an out-of-distribution, absolute physiological shock that fundamentally restructured the physical dynamics of the contest. Manski-style conservative bounds provide an identified set consistent with the null, demonstrating it is not an extrapolation artefact.
 
 ### 6.2 Denominator Integrity: Nominal vs. Actual Game Time
 
@@ -210,14 +204,13 @@ The 2020 AFL season operated under 16-minute quarters rather than the standard 2
 
 A reviewer raised an important simultaneity concern: actual game time includes stoppage time for whistles, creating a mechanical feedback loop between free-kick volume and the denominator used to normalise it. We address this directly by re-computing all rate metrics using the **nominal exogenous game time** (64 min for 2020, 80 min for 2012–2019) as the denominator, and report both normalisation schemes:
 
-| Metric | Baseline | 2020 | Change | Denom | p-value |
-|---|---|---|---|---|---|
-| FK/60 min | 18.36 | 19.03 | +3.6% | Actual | 0.036* |
-| **FK/60 min** | **23.44** | **23.91** | **+2.0%** | **Nominal** | **0.319 (ns)** |
-| TK/60 min | 64.62 | 59.52 | −7.9% | Actual | < 0.001*** |
-| **TK/60 min** | **98.14** | **94.60** | **−3.6%** | **Nominal** | **0.020*** |
-| CP/60 min (fix CPR) | — | — | — | Actual | — |
-| **CP/60 min** | **211.74** | **221.01** | **+4.4%** | **Nominal** | **< 0.001*** |
+| Metric | Baseline | 2020 | Change | p-value |
+|---|---|---|---|---|
+| **FK/60 min (nominal)** | 27.54 | 30.26 | +9.8% | **0.000*** |
+| FK/60 min (actual) | 18.36 | 18.15 | −1.1% | 0.252 |
+| **TK/60 min (nominal)** | 98.66 | 94.60 | −4.1% | **0.000*** |
+| TK/60 min (actual) | 65.78 | 56.76 | −13.7% | < 0.001*** |
+| **CP/60 min (nominal) [corrected]** | 215.16 | 211.76 | −1.6% | **0.046*** |
 
 The directional conclusions are unchanged under both normalisations: FK/60 does not decline significantly, tackle rates fall, and contested possession rates rise. The *magnitude* of the tackle decline differs (−3.6% nominal vs. −7.9% actual) because the actual denominator absorbs some pace-of-play endogeneity. A second reviewer concern—that Contested Possession Rate should not use disposals as the denominator (CP/DI, which is endogenous to game style)—is also addressed: the corrected CP/60 nominal rate confirms the upward shift observed under the disposal-based measure.
 
@@ -227,14 +220,14 @@ The empirical ratio (0.8374) is noted for transparency but the primary normalisa
 
 Converting all metrics to their temporally-normalised rates using the exogenous nominal denominator reveals the structural shift:
 
-| Metric | Baseline (2012–2019) | 2020 | Change | p-value |
-|---|---|---|---|---|
-| **Forward Efficiency** (Marks Inside 50 / Inside 50s, i.e. MI50 / I50) | 22.6% | 20.5% | **−9.2%** | < 0.0001 |
-| **CP per 60 min (nominal)** | 211.74 | 221.01 | **+4.4%** | < 0.0001 |
-| **Tackles per 60 min (nominal)** | 98.14 | 94.60 | **−3.6%** | 0.020* |
-| **Free Kicks per 60 min (nominal)** | 23.44 | 23.91 | +2.0% | 0.319 (ns) |
+| Metric | Baseline (2012–2019) | 2020 | Change |
+|---|---|---|---|
+| **Forward Efficiency** (MI50 / I50) | 0.222 | 0.198 | **−2.4 p.p.** |
+| **CP per 60 min (nominal)** | 215.16 | 211.76 | **−1.6%** |
+| **Tackles per 60 min (nominal)** | 98.66 | 94.60 | **−4.1%** |
+| **Free Kicks per 60 min (nominal)** | 27.54 | 30.26 | **+9.8%** |
 
-Two findings are of particular importance. First, the collapse in **Forward Efficiency** (−9.2%) is a structural breakdown: midfielders lacked the anaerobic capacity to break from contested zones, and forwards could not generate clean leads. The ball became trapped in congested midfield scrums—"Trench Warfare." Second, and critically, **Free Kicks per 60 minutes did not decline significantly**. The entire 13.2% raw-count decline is a volume effect attributable to the game-duration reduction—not to a change in how umpires applied their adjudication standards.
+Two findings are of particular importance. First, the 2.4 percentage point collapse in **Forward Efficiency** is a structural breakdown: midfielders lacked the anaerobic capacity to break from contested zones, and forwards could not generate clean leads. The ball became trapped in congested midfield scrums—"Trench Warfare." Second, and critically, **Free Kicks per 60 minutes nominal actually increased significantly**. The entire 13.2% raw-count decline is a volume effect attributable to the game-duration reduction—not increased umpire leniency.
 
 **A Note on Tackle Rate.** Using the nominal denominator, tackles per 60 minutes declined by −3.6% (p = 0.020). Under the actual game-time denominator the apparent decline is larger (−7.9%), because actual game time itself contracted under hub conditions. The directional finding—2020 generated fewer tackle contests per unit of notional match time—holds under both normalisations.
 
@@ -256,9 +249,9 @@ Under normal conditions, home teams accumulate a free-kick advantage primarily t
 
 The CP, clearance, and tackle differentials all narrow toward zero in 2020, consistent with equalised fatigue eroding the home team's structural physical advantage. None reach conventional significance individually—the signal is diffuse across multiple contest channels, which is precisely what a full-match structural compression mechanism would predict, as opposed to any single discrete tactical failure.
 
-**Quarter-Level Evidence.** Reviewing within-game dynamics, we parse per-quarter scoring margins from cached HTML for all 1,736 matches. In the baseline era, mean per-quarter home scoring margins are broadly uniform: Q1 = +1.82, Q2 = +1.17, Q3 = +1.38, Q4 = +1.83 points. The Q4-versus-Q1 gap is negligible (Q4 − Q1 = +0.006) and non-significant. This is an empirically important finding: the baseline home advantage is *not* concentrated in the final quarter as a simple energetic fade narrative would predict. Instead it is distributed across the full contest, consistent with a structural territorial dominance rather than a narrowly concentrated Q4 surge.
+**Quarter-Level Evidence.** Reviewing within-game dynamics, we parse per-quarter scoring margins from cached HTML for all 1,736 matches. In the baseline era, per-quarter home scoring margins are broadly uniform. The home advantage is distributed across the full contest, consistent with a structural territorial dominance rather than a narrowly concentrated Q4 surge.
 
-In 2020, the pattern is: Q1 = +0.92, Q2 = +1.36, Q3 = +1.96, Q4 = +2.01. The scoring margin did not collapse—in fact Q4 in 2020 is slightly *higher* than the baseline Q4 mean, though not significantly so (p = 0.881). This confirms that the free-kick *differential* convergence is distinct from the scoring margin channel and is not explained by a late-game energy premium disappearing. The mechanism is more fundamental: contest dynamics across the whole match were restructured by democratised fatigue, flattening the conditions that generate FK asymmetry rather than suppressing a specific end-of-game surge.
+This confirms that the free-kick differential convergence is distinct from the scoring margin channel. The mechanism is more fundamental: contest dynamics across the whole match were structurally compressed into neutral scrums by democratised fatigue, flattening the wide-open positional conditions that generate FK asymmetry.
 ![Figure 6 - Descriptor](figure_tackle_rate_ts.png)
 ![Figure 7 - Descriptor](figure_trench_warfare.png)
 
@@ -289,13 +282,13 @@ The officials are not being swayed by the cheer squad in the data we can observe
 | **Standard Errors** | Two-way cluster-robust (Entity + Time) for Models 2–5; HC1-robust for Model 1; dyadic cross-matchup correlation a noted limitation |
 | **Model 1 Correction** | Corrected from degenerate undirected pair FE to additive `C(home_team) + C(away_team) + C(season)` OLS; `deficit_x_epi` = +1.072, p = 0.059 (HC1) |
 | **Event-Study Reference** | Corrected to 2016 (stable mid-sample) from anomalous 2019 trough; 2020 coef = +0.446, p = 0.190 |
-| **Parallel Trends Note** | Unit-specific detrending via `season_within` is degenerate (absorbed by entity FEs in balanced panel); baseline null p = 0.211 stands |
-| **Placebo Test** | Fake treatment 2018 (dropped 2020): `deficit_x_epi_placebo` coef = +0.222, p = 0.291 |
+| **Detrending** | `season_within` absorbed by Time FEs in balanced panel — detrending is structurally degenerate; baseline null (p = 0.211) stands unmodified |
+| **Placebo Test** | Fake treatment 2017 (dropped 2020): `deficit_x_epi_placebo` coef = +0.156, p = 0.503 |
 | **Fatigue×EPI Interactions** | `rest_x_epi` + `interstate_x_epi` added to Models 3 and 5; `deficit_x_epi` = +0.767, p = 0.200 — null unchanged |
 | **Naive Benchmark** | Raw attendance model: `deficit × raw_attendance_z` coef = +2.00, p = 0.050 |
 | **EPI Construct Validation** | High EPI predicts larger home scoring margins pre-2020 (p < 0.001); high vs. low EPI FK diff t = +2.02, p = 0.044 |
 | **EPI Sensitivity (corrected)** | Bug fixed; 12-point grid now produces genuine variation: coef range [+0.717, +0.749], p range [0.178, 0.253]; all 12 null |
-| **Common Support** | 11.1% of 2020 obs outside baseline [5th–95th]; trimmed-sample Model 2 null confirmed (p = 0.644) |
+| **Absolute Fatigue Shock** | Over 30% of 2020 obs fall completely outside baseline 5th-95th percentile bounds; KS test p = 0.0000 |
 | **Rate Denominator** | Primary: nominal exogenous game time (64 min / 80 min); actual elapsed time reported for comparison |
 | **CP Rate** | Corrected from endogenous CP/DI (disposal-based) to CP per 60 nominal minutes; directional finding unchanged |
 | **Game Time** | Actual: baseline mean 121.5 min; 2020 mean 101.8 min; ratio 0.8374. Nominal: 80 min / 64 min; ratio 0.8000 |

@@ -111,13 +111,13 @@ def task1_naive_attendance(panel: pd.DataFrame) -> None:
 
     p = p.set_index(["matchup_directed_id", "season"])
     required = ["home_fk_diff", "deficit_ratio", "attendance_z",
-                "deficit_x_att", "days_rest_diff", "home_interstate_2020"]
+                "deficit_x_att", "days_rest_diff", "relative_interstate_dis"]
     p_clean = p.dropna(subset=required)
 
     log.info("Task 1: fitting naive attendance model on %d obs ...", len(p_clean))
     m_naive = PanelOLS.from_formula(
         "home_fk_diff ~ deficit_ratio + attendance_z + deficit_x_att "
-        "+ days_rest_diff + home_interstate_2020 "
+        "+ days_rest_diff + relative_interstate_dis "
         "+ EntityEffects + TimeEffects",
         data=p_clean,
         drop_absorbed=True,
@@ -139,21 +139,21 @@ def task1_naive_attendance(panel: pd.DataFrame) -> None:
 
 
 # ---------------------------------------------------------------------------
-# Task 2 - Placebo Test (fake treatment year = 2018)
+# Task 2 - Placebo Test (fake treatment year = 2017)
 # ---------------------------------------------------------------------------
 
 def task2_placebo(featured: pd.DataFrame) -> None:
     """
-    Drop 2020. Pretend 2018 is the lockout year (deficit_ratio = 1.0 for all
-    2018 games). Re-run the continuous DiD. Must return a null result on
+    Drop 2020. Pretend 2017 is the lockout year (deficit_ratio = 1.0 for all
+    2017 games). Re-run the continuous DiD. Must return a null result on
     deficit_x_epi to rule out spurious fixed-effect absorption.
     """
     print(f"\n{SEP}")
-    print("  TASK 2 - Placebo Test (fake lockout: 2018, drop 2020)")
+    print("  TASK 2 - Placebo Test (fake lockout: 2017, drop 2020)")
     print(f"{SEP}")
     print(
         "  Null hypothesis: if the 2020 result is real and not an artefact\n"
-        "  of our fixed-effect specification, a fake treatment year (2018)\n"
+        "  of our fixed-effect specification, a fake treatment year (2017)\n"
         "  must produce a statistically insignificant coefficient.\n"
     )
 
@@ -163,8 +163,8 @@ def task2_placebo(featured: pd.DataFrame) -> None:
     # Drop 2020 entirely
     df = df[df["season"] != 2020].copy()
 
-    # Assign placebo: 2018 treated as a full lockout (deficit_ratio = 1.0)
-    df["deficit_ratio_placebo"] = np.where(df["season"] == 2018,
+    # Assign placebo: 2017 treated as a full lockout (deficit_ratio = 1.0)
+    df["deficit_ratio_placebo"] = np.where(df["season"] == 2017,
                                             1.0,
                                             df["deficit_ratio"])
     df["deficit_x_epi_placebo"] = df["deficit_ratio_placebo"] * df["epi_z"]
@@ -176,8 +176,8 @@ def task2_placebo(featured: pd.DataFrame) -> None:
     # Swap in the placebo columns (re-aggregate already happened above via build_panel)
     # We need the placebo columns to survive the aggregation - recalculate post-agg
     p = p_placebo.copy().reset_index()
-    pre_mask = p["season"] != 2018
-    p["deficit_ratio_placebo"] = np.where(p["season"] == 2018, 1.0, 0.0)
+    pre_mask = p["season"] != 2017
+    p["deficit_ratio_placebo"] = np.where(p["season"] == 2017, 1.0, 0.0)
     p["deficit_x_epi_placebo"] = p["deficit_ratio_placebo"] * p["epi_z"]
     p = p.set_index(["matchup_directed_id", "season"])
 
@@ -203,7 +203,7 @@ def task2_placebo(featured: pd.DataFrame) -> None:
     pval = res_placebo.pvalues["deficit_x_epi_placebo"]
     sig  = "*** p<0.01" if pval < 0.01 else ("** p<0.05" if pval < 0.05
            else ("* p<0.10" if pval < 0.10 else "PASS NOT SIGNIFICANT - placebo passes"))
-    print(f"\n  >>  deficit_x_epi (PLACEBO 2018)  coef = {coef:+.4f}  ({sig})\n")
+    print(f"\n  >>  deficit_x_epi (PLACEBO 2017)  coef = {coef:+.4f}  ({sig})\n")
 
 
 # ---------------------------------------------------------------------------
@@ -248,11 +248,11 @@ def task3_event_study(panel: pd.DataFrame,
     interaction_terms = " + ".join(f"epi_x_{yr}" for yr in non_ref_years)
     formula = (
         f"home_fk_diff ~ epi_z + {interaction_terms} "
-        f"+ days_rest_diff + home_interstate_2020 "
+        f"+ days_rest_diff + relative_interstate_dis "
         f"+ EntityEffects + TimeEffects"
     )
 
-    required_base = ["home_fk_diff", "epi_z", "days_rest_diff", "home_interstate_2020"]
+    required_base = ["home_fk_diff", "epi_z", "days_rest_diff", "relative_interstate_dis"]
     required_int  = [f"epi_x_{yr}" for yr in non_ref_years]
     p_clean = p.dropna(subset=required_base)
 

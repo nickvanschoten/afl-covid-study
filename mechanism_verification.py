@@ -101,10 +101,11 @@ def load_data() -> pd.DataFrame:
     df["fwd_eff"] = df["total_mi50"]/ i50_safe     # forward efficiency
 
     # Per-60-min rates (primary analysis metrics)
-    df["fk_p60"]  = df["total_fk"]  / t60 * 60    # free kicks per 60 min
-    df["tk_p60"]  = df["total_tk"]  / t60 * 60    # tackles per 60 min
-    df["di_p60"]  = df["total_di"]  / t60 * 60    # disposals per 60 min
-    df["cp_p60"]  = df["total_cp"]  / t60 * 60    # contested poss per 60 min
+    nom_h = np.where(df["season"] == 2020, 64.0 / 60.0, 80.0 / 60.0)
+    df["fk_p60"]  = df["total_fk"]  / nom_h
+    df["tk_p60"]  = df["total_tk"]  / nom_h
+    df["di_p60"]  = df["total_di"]  / nom_h
+    df["cp_p60"]  = df["total_cp"]  / nom_h
 
     df["home_fk_diff"] = df["home_fk_for"] - df["away_fk_for"]
     df["period"] = np.where(df["season"] == 2020, "2020 (COVID)", "2012-2019 (Baseline)")

@@ -1,6 +1,6 @@
 # The Ghost Town Effect: Causal Inference, Umpire Bias, and Tactical Compression in the Australian Football League
 
-**Date**: 04/26/2026
+**Date**: 04/28/2026
 **Domain**: social_sciences/economics
 **Taxonomy**: academic/research_paper
 **Filter**: Active comments
@@ -13,300 +13,330 @@ Here are some overall reactions to the document.
 
 **Outline**
 
-The paper provides an empirical analysis of umpire bias using the 2020 AFL season's COVID-19 lockout as a natural experiment. It introduces the Expected Partisanship Index to isolate crowd pressure from tactical changes.
+The paper presents an interesting natural experiment evaluating the effect of crowd absence on umpire bias during the 2020 AFL season. While the construction of the Expected Partisanship Index and the decomposition of game dynamics are strong, several methodological choices weaken the primary causal claims. Specifically, the paper struggles with a known pre-trend violation, inconsistent inference standards, and the interpretation of null results without a power analysis.
 
-The paper presents a clever natural experiment to isolate crowd pressure from umpire bias. The construction of the Expected Partisanship Index is a useful methodological contribution for sports econometrics. However, the causal identification fails due to an unresolved structural pre-trend violation and severe confounding between the continuous treatment metric and the concurrent fatigue shock.
+This paper uses a compelling natural experiment to isolate the effects of crowd absence on umpire bias, building on a highly detailed dataset. The authors introduce a clever continuous treatment metric to resolve measurement error in attendance data and provide an insightful structural decomposition of game dynamics. However, the reliance on an undetrended baseline model in the face of a pre-trend violation and the lack of a statistical power analysis limit the strength of the null findings.
 
-**Linear detrending fails to resolve the 2018 pre-trend violation**
+**Unresolved Pre-Trend Violation Requires Bounding**
 
-Section 4.2.1 attempts to fix a significant 2018 pre-trend deviation (p=0.026) by adding unit-specific linear time trends. The deviation persists. The authors wave this away as a one-off structural event like a rule change. This reasoning is flawed. Linear detrending only fixes continuous drift. It does nothing to resolve a discrete asymmetric shock. If a 2018 rule change affected high-EPI and low-EPI matchups differently, the parallel trends assumption fails. The baseline counterfactual is compromised. You must show this shock does not carry forward into 2020. Drop 2018 from the panel to see if the pre-trends hold, or explicitly model the 2018 rule changes to prove they are orthogonal to the EPI treatment.
+Section 4.2 reveals a statistically significant pre-treatment deviation in 2018 (+0.365, p=0.033), violating the fundamental parallel trends assumption of the Difference-in-Differences design. Section 4.2.1 notes that unit-specific linear detrending is degenerate. The authors proceed with the baseline model while merely acknowledging the anomaly. Changing the reference year to 2016 and conducting a placebo test fails to rescue the identification strategy from this established violation. Standard DiD estimates are biased when parallel trends fail. This casts doubt on the validity of the central null finding. Apply modern partial identification methods, such as Rambachan and Roth (2023) bounds, to demonstrate whether the null result holds under the magnitude of trend violations implied by the 2018 deviation.
 
-**Confounding between the fatigue shock and the continuous EPI treatment**
+**Inconsistent Standard Error Clustering Across Models**
 
-The paper tries to isolate the crowd lockout from the democratised fatigue of the hub season. Yet Section 5.1 shows a massive divergence. The lowest-EPI quartile dropped by -1.638 in 2020, while the highest-EPI quartile only fell by -0.154. You correctly note this contradicts the crowd hypothesis. But it also creates a fatal identification problem. This divergence means the hub fatigue shock hit low-EPI and high-EPI matchups differently. If the secondary shock has heterogeneous effects across the treatment distribution, the continuous DiD estimate is confounded. The EPI variable is absorbing the asymmetric impact of the hub logistics. You need to interact your hub proxies (`days_rest_diff`, `home_interstate_2020`) directly with baseline EPI to strip this out, or restrict the estimation to a subsample where the fatigue shock was empirically symmetric.
+Section 4.4 describes Model 1 as using HC1-robust OLS, which produces a borderline significant treatment effect (p=0.059). Models 2-5 employ two-way cluster-robust standard errors. Dismissing the Model 1 result as an artifact of a 'relaxed inference standard' is unconvincing when the authors deliberately chose to apply different clustering strategies across the specifications. A credible empirical strategy demands applying a uniform, theoretically motivated clustering approach to all models. Managing statistical significance through ad hoc specification choices limits confidence in the stability of the findings. Re-estimate Model 1 using the exact same two-way cluster-robust standard errors applied to Models 2-5, and report whether the coefficient remains significant.
 
-**Endogenous time normalization biases the game-play rates**
+**Look-Ahead Bias in the Club Prestige Index Construction**
 
-Section 6.2 normalizes free kicks to a per-60-minute rate using actual elapsed match time. This choice introduces clear endogeneity. The clock in the AFL stops for whistles and major stoppages. The elapsed time is mechanically determined by the number of free kicks awarded. Dividing the free kick count by a duration that shrinks or grows based on that exact count introduces simultaneity bias. You acknowledge that this metric absorbs game-style variation, but you use it anyway to argue that free kick rates remained stable in Section 6.3. Swap this out for the strictly exogenous nominal playing time ratio (80 minutes vs 64 minutes). Rerun the rate calculations to confirm whether the finding of stable penalty density survives an exogenous denominator.
+Section 3.3 defines the Club Prestige Index (CPI) using a 'Membership Anchor' computed as a static average from the 2015-2019 window. Applying a static 2015-2019 average to observations from 2012-2014 introduces look-ahead bias. The prestige measure for those early matches incorporates future information. This construction directly contradicts the claim that the CPI prevents data leakage and is strictly pre-determined. The null finding regarding institutional brand bias in Section 5.2 may simply be an artifact of this misspecification muting dynamic variation in club stature over time. Reconstruct the CPI using a rolling, strictly lagged membership average (e.g., a 3-year trailing window) for all components to ensure the index reflects contemporaneous prestige.
 
-**Omitted home-away differentials for tactical game-state metrics**
+**Absence of Statistical Power Analysis for the Null Finding**
 
-The paper claims the convergence in the free-kick differential stems from a collapse in the home team's physical dominance due to democratized fatigue. While Section 6.3 documents league-wide shifts in gameplay like reduced forward efficiency and lower tackle rates, it never reports whether the home-away differential in these metrics actually vanished. A global reduction in tackles does not automatically mean the home team lost its relative physical advantage. This omission leaves the tactical compression argument incomplete. To prove that fatigue erased the home side's territorial dominance, the manuscript must show the physical advantage disappearing. Compute the pre-2020 to 2020 shift in the mean home-away differential for contested possessions and clearances. Verify that the baseline physical asymmetry collapsed in tandem with the penalty advantage.
+The central claim in Section 5.1 rests on interpreting statistically insignificant coefficients as definitive evidence that partisan crowds do not cause umpire bias. Failing to reject the null hypothesis is not equivalent to proving a zero effect. This is particularly true given the massive structural noise introduced by the 2020 'Tactical Compression' discussed in Section 6. Readers cannot determine whether the null result reflects a true absence of bias or merely a lack of statistical power to detect it amidst the pandemic-induced variance. This omission leaves the strong behavioral claims in the conclusion lacking empirical support. Include a formal minimum detectable effect (MDE) calculation to demonstrate that the primary specification possessed sufficient power to detect a historically plausible crowd-effect size.
 
-**Missing concrete calculations for novel partisanship indices**
+**SUTVA Violations and Inseparable Concurrent Treatments**
 
-The manuscript introduces the Expected Partisanship Index (EPI) and Club Prestige Index (CPI) to resolve measurement errors, but it never computes these metrics for identifiable real-world cases. The text contrasts a large Melbourne derby with a Geelong home game to illustrate the 'Away Fan Fallacy'. Yet it fails to supply the actual EPI values for these specific matchups. Readers will wonder if the proposed formulas produce empirically sensible rankings. A novel theoretical index needs a concrete demonstration to prove the formula achieves the desired re-weighting. Calculate and display the EPI for a few standard matchup types, such as a prominent Victorian derby and an interstate fortress game. Present the top and bottom clubs on the CPI to help readers calibrate their intuitions about the prestige metric.
+Section 6.1 contends that the continuous EPI treatment successfully separates crowd absence from the democratized fatigue of the hub season. This logic assumes the hub shock only linearly shifted the outcome via the observed proxies for rest and travel. The entire league experienced a simultaneous, unprecedented structural transformation that altered fundamental gameplay dynamics (Section 6.3). Consequently, the Stable Unit Treatment Value Assumption (SUTVA) is highly suspect. The baseline potential outcomes are likely undefined for the 2020 season, making the isolation of the psychological umpire mechanism from the physiological player mechanism incomplete. Add a simulation or bounding exercise allowing for unobserved, non-linear interactions between the hub shock and the EPI to verify whether the crowd effect can genuinely be isolated.
 
-**Missing 2020 data in quarter-level scoring analysis**
+**Unverified fatigue mechanism for tactical compression**
 
-Section 6.4 uses quarter-level scoring margins to argue that the home team enjoyed a persistent structural dominance throughout the match during the baseline era. The authors supply the mean per-quarter margins for 2012-2019 to disprove the idea of a late-game energy surge. Oddly, the text never reports the corresponding quarter-level margins for the 2020 hub season. A natural question is whether this structural dominance actually disappeared during the treatment year, as the fatigue mechanism implies. Presenting the baseline data without the treatment data makes the empirical test half-finished. Compute and report the mean per-quarter home scoring margins for 2020 alongside the baseline figures. Confirm that these within-quarter advantages flattened toward zero to validate the proposed energy erosion mechanism.
+The paper attributes the structural collapse in dynamic gameplay to democratised fatigue from short rest cycles. It establishes that the 2020 season featured many short-rest games and distinct tactical shifts. It never formally links the two. This is a major omission because the entire alternative explanation for the null result rests on fatigue driving the gameplay changes. Claiming causality requires demonstrating that short rest actually degrades these specific metrics in the data. Regress Forward Efficiency and Tackle Rate on the short-rest indicator using the pooled dataset to verify that fatigue actively suppresses dynamic gameplay.
+
+**Missing aggregation of diffuse tactical shifts**
+
+The authors argue that tactical compression eliminates the home free-kick advantage through a diffuse decay in physical dominance. They show that contested possession, clearance, and tackle metrics all narrowed toward zero in 2020, though none significantly. This leaves a central claim unsubstantiated. A collection of non-significant shifts does not automatically sum to the significant 1.29-foul drop in the primary outcome. The paper must show these tactical changes are quantitatively sufficient to explain the convergence. Train a baseline regression predicting home free-kick differential from the three tactical differentials. Then feed this model the 2020 tactical averages and verify that the predicted drop matches the observed convergence.
+
+**Worked example of the Away Fan Fallacy**
+
+The Expected Partisanship Index resolves the measurement error that plagues raw attendance figures. The text claims large Victorian derbies act as neutral venues, inflating crowd pressure scores and driving the naive model's spurious significance. Readers are given the final regression output but no intuition for how the data actually moves. This makes it hard to evaluate the paper's primary methodological contribution. Provide a concrete comparison of two representative matches. Compute raw attendance and EPI for a high-attendance neutral derby like Collingwood versus Carlton alongside a smaller partisan match like Geelong versus Fremantle. Show exactly how the index reweights these observations to alter the estimator's leverage.
 
 **Recommendation**: major revision
 
 **Key revision targets**:
 
-1. Demonstrate that the 2018 structural shock does not compromise the 2020 counterfactual by dropping 2018 from the sample and re-estimating the event study.
-2. Control for the heterogeneous impact of hub fatigue across the EPI distribution by interacting the hub logistical proxies with the baseline EPI.
-3. Replace the endogenous elapsed-time denominator with the exogenous nominal time ratio for all rate normalizations in Section 6.
+1. Apply partial identification methods (e.g., Rambachan and Roth bounds) to address the 2018 pre-trend violation in the primary DiD specification.
+2. Unify the standard error clustering strategy across all models, specifically re-estimating Model 1 with two-way cluster-robust standard errors.
+3. Provide a Minimum Detectable Effect (MDE) calculation to confirm the study had adequate power to detect a meaningful treatment effect.
+4. Reconstruct the Club Prestige Index using strictly trailing windows to eliminate look-ahead bias in the 2012-2014 sample.
 
 **Status**: [Pending]
 
 ---
 
-## Detailed Comments (21)
+## Detailed Comments (22)
 
-### 1. Collinearity invalidates the linear detrending check
+### 1. Inconsistent free-kick normalisation
 
 **Status**: [Pending]
 
 **Quote**:
-> We construct a within-entity centred season index (`season_within`) for each matchup-directed pair and include it alongside standard entity and time fixed effects.
+> | Metric | Baseline | 2020 | Change | p-value |
+> |---|---|---|---|---|
+> | **FK/60 min (nominal)** | 23.44 | 23.91 | +2.0% | **0.319 (ns)** |
+> | FK/60 min (actual, previous spec) | 18.36 | 19.03 | +3.6% | 0.036* |
+> | **TK/60 min (nominal)** | 98.14 | 94.60 | −3.6% | **0.020*** |
+> | TK/60 min (actual, previous spec) | 64.62 | 59.52 | −7.9% | < 0.001*** |
+> | **CP/60 min (nominal) [corrected]** | 211.74 | 221.01 | +4.4% | **< 0.001*** |
+
+**Feedback**:
+The reported conversion from actual to nominal free-kick rates contains an algebraic error. A proper normalization must preserve the underlying event count. Applying the actual baseline rate of 18.36 across 121.5 minutes yields 37.18 total free kicks per game. Converting this total to an 80-minute nominal game yields a rate of 27.88. The table instead reports 23.44. Similarly, the 2020 nominal rate should be 30.26, not 23.91. If the underlying data is correct, the nominal rate increased by 8.5%, not 2.0%. This directly contradicts the core claim that free-kick density remained stable. Recalculate these figures.
+
+---
+
+### 2. Unreproducible mechanical duration effect
+
+**Status**: [Pending]
+
+**Quote**:
+> Mechanical duration effects account for only −0.434 of the observed **1.130** differential drop (baseline +1.51 minus 2020 mean +0.38) even under a conservative non-linear fatigue assumption (k=2, double density in removed minutes).
+
+**Feedback**:
+The figure of -0.434 does not follow from the stated assumption. We drop 16 minutes from an 80-minute game. If the density of the removed 16 minutes is exactly twice the density of the retained 64 minutes, solving 64x + 16(2x) = 1.51 yields a base density of x = 1.51 / 96. The expected drop from the 16 minutes is therefore 32x, which equals 0.503. The published calculation understates the mechanical effect. Correct the duration effect bounds using the exact algebraic derivation.
+
+---
+
+### 3. Invalid inference from placebo test on anomalous year
+
+**Status**: [Pending]
+
+**Quote**:
+> The placebo is solidly null. This falsification check demonstrates that the design does not automatically generate significance, even in the year with the acknowledged pre-trend anomaly.
+
+**Feedback**:
+A placebo test run on a year with a known anomaly is uninformative when it returns a null result. Section 4.2.1 already establishes that 2018 contains a statistically significant pre-trend deviation. A well-powered placebo check should flag this deviation. A null result here simply means the pooled specification dilutes the 2018 anomaly—likely by averaging it against the low 2019 trough. This demonstrates poor specification sensitivity rather than a valid design. Run the placebo test on a stable year, such as 2017, to prove the estimator does not generate spurious significance.
+
+---
+
+### 4. Common Support Metric Contradicts Fatigue Mechanism
+
+**Status**: [Pending]
+
+**Quote**:
+> A formal overlap diagnostic confirms only 11.1% of 2020 observations fall outside the [5th, 95th] percentile range of the baseline rest-day differential distribution, and a two-sample KS test fails to reject identical distributions (D = 0.108, p = 0.071).
+
+**Feedback**:
+Checking overlap on the rest-day differential misses the physiological mechanism. The paper argues that an extreme, absolute lack of rest democratized fatigue. A match where both teams rest for 4 days yields a differential of 0. This is exactly like a baseline match where both rest for 7 days. The differential distributions can overlap perfectly even if the absolute rest distributions are entirely disjoint. You must evaluate the common support using the marginal distributions of absolute rest days for both teams to show whether the 2020 effect is identified within baseline fatigue ranges.
+
+---
+
+### 5. Mathematically impossible collinearity claim
+
+**Status**: [Pending]
+
+**Quote**:
+> To assess whether the 2018 coefficient threatens identification, we attempted to augment the primary specification with unit-specific linear time trends via a within-entity centred season index (`season_within`). Diagnostic testing confirmed that in this balanced panel structure—where each matchup entity appears exactly once per season—`season_within` is perfectly collinear with the entity fixed effects and is absorbed by `drop_absorbed=True`. This is a structural property of the balanced panel, not a software artefact: the entity-mean projection spans the within-trend exactly when entity coverage is uniform across time.
+
+**Feedback**:
+This mathematical justification for why the detrending failed is wrong. A globally centered time index takes the same sequence of values for every entity. Its dot product with any entity indicator is zero, making it strictly orthogonal to entity fixed effects. Software drops this variable because a uniform time trend is perfectly collinear with the year fixed effects already in the model. Estimating true unit-specific linear trends requires interacting the continuous time index with the entity indicators. Revise the text to correctly state what collinearized, and interact the time index with entity IDs if unit-specific detrending is intended.
+
+---
+
+### 6. Absolute Indicator Fails to Capture Asymmetry
+
+**Status**: [Pending]
+
+**Quote**:
+> To robustly isolate the crowd effect from the logistics of the 2020 hub season, we engineer two hub controls: `days_rest_diff`, a continuous measure of home rest days minus away rest days, and `home_interstate_2020`, a binary indicator for designated 'home' teams playing outside their home state. These directly address severe logistical asymmetries without requiring a full geospatial distance matrix.
+
+**Feedback**:
+Constructing `home_interstate_2020` as an absolute indicator fails to capture the relative logistical burden. In a hub environment, both teams are often relocated to the same state. The home team playing interstate is no relative disadvantage if the away team is also interstate. This breaks the intended parallel with the `days_rest_diff` variable, which correctly measures the net difference. Replace the absolute indicator with a relative measure of interstate travel burden.
+
+---
+
+### 7. Misaligned Identification Mechanisms
+
+**Status**: [Pending]
+
+**Quote**:
+> Our identification strategy isolates pathway (1) from pathways (2) and (3) through three mechanisms. First, we adopt a directed team-pair fixed-effect structure as our primary specification to cleanly isolate strict home-ground advantage. Second, we integrate direct controls for hub logistical asymmetries. Third, we standardise all rate metrics to per-60-minutes using an exogenous duration denominator—discussed in Section 6.2.
+
+**Feedback**:
+Directed team-pair fixed effects cannot separate concurrent time-varying shocks. They only absorb time-invariant baseline differences between teams. Democratized fatigue and reduced quarter lengths occurred exactly at the same time as the crowd lockouts. The fixed effects are blind to this temporal overlap. You isolate the crowd effect by exploiting the continuous variance of the EPI against the uniform hub shocks, not through fixed effects. Correct the text to properly assign the identification properties to the correct mechanisms.
+
+---
+
+### 8. False Dichotomy in Evaluating 2018 Deviation
+
+**Status**: [Pending]
+
+**Quote**:
+> All pre-treatment coefficients save one are statistically indistinguishable from zero under two-way clustering. The 2018 deviation (p = 0.033) persists regardless of reference year choice, confirming it reflects a genuine structural event—most plausibly the AFL's 2018 mid-season rule changes—rather than an artefact of the omitted year.
+
+**Feedback**:
+The persistence of the 2018 coefficient across reference years does not prove a structural event occurred. Shifting the reference year merely applies a uniform linear shift to all coefficients. A Type I statistical noise spike will persist identically under this transformation. Asserting this persistence confirms a genuine structural event presents a false dichotomy. Soften the claim to note that the deviation persists, but acknowledge it could reflect either an unobserved structural break or standard sampling variance.
+
+---
+
+### 9. Contradictory Claim on Uniform Fatigue
+
+**Status**: [Pending]
+
+**Quote**:
+> Both groups decline in 2020, but the Bottom 25% (Least Hostile) collapses by −1.638 residual free kicks against only −0.154 for the Top 25% (Most Hostile)—a 1.48-foul gap that directly contradicts the crowd-pressure prediction. If crowd removal drove the convergence, the most hostile matchups should have collapsed the most; instead they were the most stable. This is consistent with a global fatigue mechanism operating uniformly across matchup types.
+
+**Feedback**:
+A 1.48-foul gap between quartiles demonstrates a highly heterogeneous effect. A uniform mechanism would cause both groups to experience similar declines. While the direction of the gap contradicts the crowd-pressure hypothesis, calling the resulting collapse uniform defies the numbers presented in the same paragraph. Revise the conclusion to explicitly address why the least hostile environments experienced a collapse ten times larger than the most hostile environments.
+
+---
+
+### 10. Mischaracterization of Point Estimate
+
+**Status**: [Pending]
+
+**Quote**:
+> We emphasise that a null result—a coefficient near zero with a confidence interval that includes zero—provides no empirical basis for inferring any directional behavioural tendency. Any point estimate is consistent with sampling noise. The officials are not being swayed by the cheer squad in the data we can observe.
+
+**Feedback**:
+Describing the `deficit_x_epi` coefficient as near zero misrepresents the actual estimate of +0.745 reported just prior. An effect size of nearly three-quarters of a free kick is substantively large in this context. A wide confidence interval prevents rejecting the null, but conflating this lack of precision with a measured true zero masks the model's uncertainty. Change 'a coefficient near zero' to 'a statistically insignificant result' to accurately describe the regression output.
+
+---
+
+### 11. Contradiction regarding magnitude of null point estimates
+
+**Status**: [Pending]
+
+**Quote**:
+> First, constructing a credible treatment variable in crowd-presence studies requires decomposing raw attendance into its constituent hostility signals. The Expected Partisanship Index resolves the measurement error that causes naive attendance models to recover spurious significance. A coding error identified during review—wherein the sensitivity pipeline silently overwrote fan-split overrides before computing EPI—has been corrected; the null result is now demonstrably robust to genuine parameter variation across all 12 grid configurations (coef range +0.717 to +0.749, all null).
+
+**Feedback**:
+Asserting the result is demonstrably robust contradicts the large magnitude of the point estimates. Ranging from +0.717 to +0.749, these coefficients suggest a substantial but imprecisely estimated positive effect. Characterizing this as a robust null misleads readers about the difference between a tightly bound zero and a noisy positive reading. Rewrite this sentence to state the estimates remain statistically insignificant, but acknowledge the large point estimates indicate the effect is imprecise.
+
+---
+
+### 12. Conflating Non-Significance with Zero Effect
+
+**Status**: [Pending]
+
+**Quote**:
+> The `CPI_diff` coefficient across Models 4 and 5 is non-significant at any conventional level. A club possessing greater measured prestige—evidenced by larger rolling previous-season average home attendance, stronger recent form, and higher primetime allocation—confers no systematic free-kick advantage. The badge on the jumper provides no statistical armour in front of the officials.
+
+**Feedback**:
+Failing to reject the null hypothesis does not prove the effect is exactly zero. Asserting that club prestige confers no systematic free-kick advantage overstates what standard hypothesis testing allows, especially without reporting equivalence bounds. The models merely fail to detect an advantage. Adjust the phrasing to 'confers no statistically detectable free-kick advantage in these models' to respect the limits of statistical inference.
+
+---
+
+### 13. Manski Bounds Yield Estimates, Not P-Values
+
+**Status**: [Pending]
+
+**Quote**:
+> Manski-style conservative bounds return p = 0.464 and p = 0.188.
+
+**Feedback**:
+Manski bounds calculate an identified set for a parameter—producing an upper and lower bound on the treatment effect. They do not return p-values. You can calculate Imbens-Manski confidence sets or conduct hypothesis tests against these bounds, but stating the bounds themselves return p-values is a fundamental category error. Report the actual identified set of coefficients, and separately clarify what specific null hypotheses the p-values refer to.
+
+---
+
+### 14. Contradictory claim of pre-trend validation
+
+**Status**: [Pending]
+
+**Quote**:
+> We validate this null result through four formal identification checks: a naive attendance benchmark, a placebo test, an event-study parallel trends validation, and direct heterogeneous-confound tests interacting fatigue proxies with EPI.
+
+**Feedback**:
+Claiming the parallel trends assumption is validated directly contradicts Section 4.2.1, which labels the 2018 deviation an unresolved pre-trend anomaly. Calling the assumption validated in the introduction mischaracterizes the mixed diagnostic results presented later in the text. Change 'an event-study parallel trends validation' to 'an event-study parallel trends diagnostic' so the opening summary aligns with the paper's actual empirical findings.
+
+---
+
+### 15. Inconsistent Tactical Control Variable
+
+**Status**: [Pending]
+
+**Quote**:
+> Separately, three game-state controls represent the physical state of play: `cp_diff` (home minus away contested possessions), `kicks_diff` (kicks), and `clearance_diff` (clearances). These are explicitly excluded from our primary causal identification models to prevent post-treatment bias and deployed only in a dedicated mediation specification.
+
+**Feedback**:
+The inclusion of `kicks_diff` contradicts the metrics used in Section 6.4, where the paper specifically analyzes tackles to test the physical dominance hypothesis. Kicks measure general ball movement, whereas tackles measure the physical contest intensity required for the fatigue-driven collapse mechanism. Replace `kicks_diff` with `tackles_diff` here to ensure internal consistency and align the control variables with the structural thesis.
+
+---
+
+### 16. Invalid Aggregation of Event-Study Dummies
+
+**Status**: [Pending]
+
+**Quote**:
+> | Year | Coefficient | 95% CI | p-value |
+> |---|---|---|---|
+> | 2012–2017 | Mainly null | — | > 0.10 |
+
+**Feedback**:
+Aggregating five distinct years into a single row obscures the individual variance required to evaluate parallel trends. An event-study specification produces independent coefficients and standard errors for each interaction term. Assigning a single generic p-value to the entire block prevents the reader from verifying whether any specific pre-treatment year deviated from zero. Expand this row to list the exact coefficients and p-values for every year from 2012 to 2017.
+
+---
+
+### 17. Missing synthesis of Disposal Differential
+
+**Status**: [Pending]
+
+**Quote**:
+> The CP, clearance, and tackle differentials all narrow toward zero in 2020, consistent with democratised fatigue eroding the home team's structural physical advantage. None reach conventional significance individually—the signal is diffuse across multiple contest channels, precisely what a full-match structural compression mechanism would produce, as opposed to a single discrete tactical failure.
+
+**Feedback**:
+The text synthesizes CP, clearance, and tackle differentials but omits the Disposal Differential. The table immediately above shows Disposal Differential experienced the largest absolute change (-7.95) and has a near-significant p-value of 0.051. Ignoring this metric in the summary text reads like selective reporting. Readers will wonder why the strongest signal is excluded from the narrative. Add 'disposal differential' to the list of narrowing metrics in the text.
+
+---
+
+### 18. Contradictory free-kick differentials in Appendix table
+
+**Status**: [Pending]
+
+**Quote**:
+> | **Differential Drop** | Baseline +1.51 − 2020 +0.38 = **1.130**; mechanical bound (k=2) = −0.434; residual = 0.696 |
+> | **Tactical Differentials** | CP diff +3.42→+1.34 (ns); CL diff +0.67→+0.33 (ns); FK diff +1.59→+0.30 (p=0.009) |
+
+**Feedback**:
+The table reports contradictory values for the same metric on adjacent lines. The 'Differential Drop' row states the free-kick baseline was +1.51 and 2020 was +0.38. The 'Tactical Differentials' row immediately below states the FK diff dropped from +1.59 to +0.30. These cannot both be correct. Unify the numbers, or explicitly label the distinction if one is an adjusted rate and the other is a raw count.
+
+---
+
+### 19. Unquantified bounds on duration confound
+
+**Status**: [Pending]
+
+**Quote**:
+> First, the AFL shortened quarters from 20 to 16 minutes, mechanically reducing all counting statistics including total free kicks and their differential, regardless of any change in umpire behaviour.
+
+**Feedback**:
+Introducing the duration confound without immediately quantifying it allows the reader to assume shortened games explain the entire convergence. Section 6.2 calculates this mechanical effect explains less than 40% of the drop. Adding a forward reference right here sets expectations accurately. Consider appending '(though Section 6.2 shows this explains only a fraction of the observed drop)' so the reader knows tactical mechanisms are still necessary.
+
+---
+
+### 20. Misleading description of positive point estimate
+
+**Status**: [Pending]
+
+**Quote**:
+> The ball became trapped in congested midfield scrums. Critically, **Free Kicks per 60 minutes did not decline significantly**. The entire 13.2% raw-count decline is a volume effect of the game-duration reduction—not a change in adjudication standards.
+
+**Feedback**:
+Characterizing the shift as 'did not decline significantly' strongly implies a negative point estimate that failed to reach significance. The table clearly shows the nominal rate increased by 2.0%. Describing an absolute increase as a non-significant decline obscures the direction of the data. Change the phrasing to '**Free Kicks per 60 minutes slightly increased**' to faithfully report the positive point estimate.
+
+---
+
+### 21. Ambiguous presentation of rate changes in table
+
+**Status**: [Pending]
+
+**Quote**:
+> | **Forward Efficiency** (Marks Inside 50 / Inside 50s, i.e. MI50 / I50) | 22.6% | 20.5% | **−9.2%** | < 0.0001 |
+
+**Feedback**:
+Reporting a relative percentage change for a variable that is inherently a percentage creates ambiguity. Readers tend to calculate the absolute difference and might misinterpret -9.2% as a massive 9.2 percentage point drop. Standard practice for rate variables requires reporting changes in percentage points. Update the table to report this as '-2.1 pp' to prevent confusion regarding the magnitude of the shift.
+
+---
+
+### 22. Inaccurate classification of Forward Efficiency
+
+**Status**: [Pending]
+
+**Quote**:
+> Converting all metrics to their nominal-time-normalised rates reveals the structural shift:
 > 
-> The detrended Model 2 yields `deficit_x_epi` = +0.745, p = 0.211—numerically identical to the undetrended estimate—on 1,736 observations.
+> | Metric | Baseline (2012–2019) | 2020 | Change | p-value |
+> |---|---|---|---|---|
+> | **Forward Efficiency** (Marks Inside 50 / Inside 50s, i.e. MI50 / I50) | 22.6% | 20.5% | **−9.2%** | < 0.0001 |
 
 **Feedback**:
-The identical parameter estimates flag a technical implementation error. Adding a single unit-centred season index to a model that already specifies exhaustive entity and time fixed effects causes perfect multicollinearity. The fixed effects absorb both the unit means and the aggregate linear trend. The estimation software therefore drops the collinear vector without warning, returning the original unmodified model. A valid robustness check requires interacting the season index with the individual entity dummy variables to estimate separate slopes.
-
----
-
-### 2. Inconsistent denominator for rates
-
-**Status**: [Pending]
-
-**Quote**:
-> This discrepancy arose from using a disposal-based denominator (TK/DI), which is endogenous to the same style shifts being measured. Using the exogenous per-60-minutes denominator, tackles per 60 minutes declined by **7.9% (p < 0.0001)** from a mean of 64.6 to 59.5.
-
-**Feedback**:
-The manuscript correctly identifies that disposal-based denominators are endogenous to tactical shifts. However, the preceding table evaluates the Contested Possession Rate using this exact ratio (CP / DI). This internal contradiction compromises the empirical findings. If total disposals shifted during the hub season, the disposal-scaled metric suffers from the exact bias you identify for tackle rates. The 3.8% increase in contested possessions per disposal may merely reflect a drop in uncontested disposals rather than a structural increase in contested play. Calculate and present an exogenous, per-60-minutes rate for Contested Possessions.
-
----
-
-### 3. Incorrect mechanism for duration ratio
-
-**Status**: [Pending]
-
-**Quote**:
-> This 3.2-percentage-point deviation from the nominal constant reflects real behavioural differences under hub conditions (faster play-on, reduced interchange rotation delays, fewer injury stoppages).
-
-**Feedback**:
-The listed behavioural mechanisms conflict with the observed direction of the game time ratio. The empirical ratio (0.8320) exceeds the nominal ratio (0.800), meaning the 2020 matches shrank less than expected. This indicates that games contained a proportionally higher share of stoppage time relative to live play. The mechanisms you list—faster play and fewer delays—would reduce stoppage time and drive the empirical ratio below 0.800. Readers will notice this arithmetic contradiction. Reevaluate the tactical mechanisms driving the extended relative durations, such as fatigue-induced delays or prolonged ball-ups.
-
----
-
-### 4. Improbable invariant p-value in grid search
-
-**Status**: [Pending]
-
-**Quote**:
-> | **EPI Sensitivity** | 12-point fan-split grid (non-VIC 0.65–0.95 × VIC-derby 0.35–0.65): null result invariant (p = 0.211 throughout) |
-
-**Feedback**:
-Reporting a p-value of exactly 0.211 across all 12 points of the sensitivity grid strongly points to a coding error. Because the fan split acts as a multiplicative weight in the EPI formula, altering it changes the variance of the treatment variable. This change in variance propagates through the standardizations and interaction terms, altering the standard errors of the regression estimator. Finding mathematically identical p-values across a sensitivity grid suggests the estimation loop failed to update the underlying parameter. Verify the simulation code and report the actual range of test statistics.
-
----
-
-### 5. Data leakage in Membership Anchor
-
-**Status**: [Pending]
-
-**Quote**:
-> The use of lagged values for win percentage and primetime allocation prevents data leakage: the CPI for season *t* is computed exclusively from information available before season *t* commences. The 2012 lag is left as a missing value rather than backfilled with contemporaneous 2012 data, preventing endogenous contamination of the earliest observations.
-
-**Feedback**:
-The text asserts that the CPI relies exclusively on strictly prior data. This conflicts with the definition of the membership anchor component. By deriving the membership metric from a static 2015–2019 window, the index for baseline years like 2012 incorporates future information. This introduces the precise forward-looking data leakage the design claims to avoid. Clarify that while the form and scheduling parameters are properly lagged, the membership anchor relies on subsequent data for the earliest seasons in the panel.
-
----
-
-### 6. Mischaracterization of kicks as physical state
-
-**Status**: [Pending]
-
-**Quote**:
-> Separately, we construct three game-state controls to represent the physical state of play: `cp_diff` (home minus away contested possessions), `kicks_diff` (kicks), and `clearance_diff` (clearances).
-
-**Feedback**:
-Kicks represent a fundamental method of ball distribution rather than a measure of physical collision or contest density. Using a kick differential to capture physical play conflicts with the paper's central argument regarding tactical compression. Section 6.3 relies heavily on reduced tackle rates to demonstrate physical collapse. Swap the kick differential for a tackle differential to ensure your covariates align with the stated physiological mechanisms.
-
----
-
-### 7. Time-invariant FEs cannot isolate concurrent pathways
-
-**Status**: [Pending]
-
-**Quote**:
-> Our identification strategy isolates pathway (1) from pathways (2) and (3) through three mechanisms. First, we adopt a directed team-pair fixed-effect structure as our primary specification (e.g., Collingwood hosting West Coast is a separate entity from West Coast hosting Collingwood) to cleanly isolate strict home-ground advantage.
-
-**Feedback**:
-The econometric justification overstates the capability of fixed effects. Because crowd lockouts, hub fatigue, and shortened quarters all occur simultaneously during the 2020 season, time-invariant pair fixed effects cannot separate them. The directed fixed effects isolate the aggregate 2020 treatment from baseline pair heterogeneity, but they do not disentangle the distinct mechanisms operating within the treatment year. Clarify that the direct hub controls and metric standardization handle the isolation of the concurrent pathways.
-
----
-
-### 8. Anomalous reference year falsifies parallel trends assumption
-
-**Status**: [Pending]
-
-**Quote**:
-> All seven pre-treatment point estimates are positive relative to the 2019 reference year, consistent with 2019 being an anomalously low period relative to the prior seven seasons. All pre-treatment coefficients save one are statistically indistinguishable from zero at conventional significance levels under two-way clustering.
-
-**Feedback**:
-Identifying 2019 as an anomalously low period invalidates it as a solitary reference year for the event study. The parallel trends assumption requires a stable trajectory between the pre-treatment and treatment periods. If 2019 reflects a severe negative deviation, the subsequent rise in 2020 confounds any treatment effect with natural mean reversion toward the 2012–2018 baseline. A single outlier year compromises the counterfactual. You should pool 2012–2018 as the stable reference baseline or explicitly address the threat of mean reversion from the 2019 trough.
-
----
-
-### 9. Fallacy of equating individual non-significance with zero pre-trend
-
-**Status**: [Pending]
-
-**Quote**:
-> All pre-treatment coefficients save one are statistically indistinguishable from zero at conventional significance levels under two-way clustering.
-
-**Feedback**:
-The text relies on the lack of individual statistical significance to assert the absence of pre-trends. This reasoning ignores the directional uniformity of the estimates. All seven pre-treatment coefficients are positive, ranging from +0.169 to +0.817. This systematic bias indicates a joint deviation from the 2019 reference year, while the large standard errors generated by two-way clustering obscure the individual significance tests. Acknowledge this uniform directional bias rather than relying on underpowered marginal tests to defend the parallel trends assumption.
-
----
-
-### 10. Contradictory clustering justification
-
-**Status**: [Pending]
-
-**Quote**:
-> All models employ Time (season) fixed effects, and robust two-way cluster-robust standard errors (clustered by entity and time index) are used to prevent understating uncertainty given that unobserved team-level shocks correlate across matchups. We note that in a dyadic panel, a shock to one team propagates across all of that team's matchups; a matchup-level cluster is a pragmatic approximation that does not fully absorb node-level shocks.
-
-**Feedback**:
-The mathematical justification for the standard error clustering contains a contradiction. Matchup-level clustering groups repeated observations of a specific pair over time. It assumes independence across different opponents, meaning it explicitly fails to address team-level shocks that propagate across the schedule. While the text eventually admits this limitation, the opening premise wrongly states the clustering is used to handle cross-matchup correlations. Revise the initial sentence to clarify that matchup-level clustering accounts for autocorrelation within the same team pairing, rather than broad node-level shocks.
-
----
-
-### 11. Degenerate undirected fixed effects
-
-**Status**: [Pending]
-
-**Quote**:
-> - **Model 1**: Baseline Specification (Undirected Matchup FEs, no controls)
-> - **Model 2**: Primary Causal Identification (Directed Team-Pair FEs, no controls)
-> - **Model 3**: Hub Travel Robustness (Directed Team-Pair FEs + resting days differential + interstate override dummy)
-
-**Feedback**:
-Specifying undirected pair fixed effects against an antisymmetric differential outcome renders the estimator degenerate. A free-kick differential flips its sign depending on which team hosts the match. An undirected parameter averages the positive and negative iterations of the pair, causing the expected intercept to cancel out to zero. The fixed effect therefore fails to absorb the latent team-quality differences. You should replace Model 1 with an additive structure specifying separate home and away team fixed effects.
-
----
-
-### 12. Contradictory Mechanism for Baseline Advantage
-
-**Status**: [Pending]
-
-**Quote**:
-> The mechanism linking Tactical Compression to differential convergence operates through the spatial and energy economics of open play. Under normal conditions, home teams accumulate a free-kick advantage primarily through a late-game energy premium: fresher legs allow them to break contests into space, force more forward-50 contests, and generate the forward-moving collision physics (Holding the Man, Push in the Back, Holding the Ball) that constitute the preponderance of contact-driven free kicks. Hub conditions imposed comparable travel burdens and condensed fixture schedules on both sides: teams faced shortened preparation windows, shared accommodation environments, and regular four-day turnarounds. Without a reliable energy asymmetry, the home team could not sustain the late-game territorial dominance that structurally generates FK differentials.
-
-**Feedback**:
-The theoretical argument depends on a late-game energy premium to explain the historical home advantage. This contradicts the empirical results presented in Section 6.4. The data demonstrates that baseline scoring margins are uniform across all quarters, and the text specifically rejects the late-game surge hypothesis in favor of a persistent structural dominance. Establishing a mechanism only to falsify it directly with quarter-level data confuses the narrative. Align this paragraph with the empirical findings by replacing the late-game claims with the persistent, match-long structural dominance mechanism.
-
----
-
-### 13. Conflation of absolute fatigue and relative rest
-
-**Status**: [Pending]
-
-**Quote**:
-> Short turnarounds, defined as breaks of 5 days or fewer, were a structural hallmark of the 2020 hub season, imposing an overwhelming physical burden on athletes. To validate whether this fatigue channel is structurally operative across eras, we queried the historical pre-2020 dataset for all matches played on short rest. In the entire 2012–2019 baseline (N=1,583 matches), there were *exactly five* short-rest games. The physical shock of the 2020 regular season (N=31 short rest games) was an unprecedented historical discontinuity. Hub conditions democratised an extreme, novel form of fatigue between home and away sides, effectively eroding the home team's traditional energy premium in the contest's closing stages.
-
-**Feedback**:
-The passage conflates absolute systemic fatigue with relative rest differentials. The historical discontinuity relies on absolute rest metrics, identifying 31 games with breaks of five days or fewer. Yet the common support robustness check depends entirely on the relative rest-day differential between opponents. If both teams experience a short turnaround, absolute fatigue is extreme but their rest differential is zero. Validating the model support on the differential metric fails to address the absolute physical shock driving the tactical collapse. Distinguish between these two concepts and clarify whether the hub mechanism requires asymmetric rest or merely symmetric absolute fatigue.
-
----
-
-### 14. Leftover author note in text
-
-**Status**: [Pending]
-
-**Quote**:
-> **A Note on Tackle Rate Reconciliation.** An earlier draft described the Tackle Rate as "dropping 4.1%" while a figure note described it as "ticking up slightly in 2020." This discrepancy arose from using a disposal-based denominator (TK/DI), which is endogenous to the same style shifts being measured. Using the exogenous per-60-minutes denominator, tackles per 60 minutes declined by **7.9% (p < 0.0001)** from a mean of 64.6 to 59.5. At 59.5 TK/60min, 2020 represents a strict decline of 1.7 TK/60min from the previous low of 61.2 recorded in 2019—making 2020 the lowest tackling season in the entire sample. Any suggestion of a marginal uptick reflects a figure that used a disposal-based denominator and should be disregarded.
-
-**Feedback**:
-This paragraph reads as internal correspondence or a response to reviewers rather than formal manuscript text. Instructing the reader to disregard a figure implies the document contains uncorrected legacy content. Published research should correct inconsistent tables and figures rather than publishing meta-commentary warning readers to ignore them. Remove this transitional note and ensure all charts reflect the exogenous per-60-minutes denominator.
-
----
-
-### 15. Conflating pre-trends with shock
-
-**Status**: [Pending]
-
-**Quote**:
-> Using the exogenous per-60-minutes denominator, tackles per 60 minutes declined by **7.9% (p < 0.0001)** from a mean of 64.6 to 59.5. At 59.5 TK/60min, 2020 represents a strict decline of 1.7 TK/60min from the previous low of 61.2 recorded in 2019—making 2020 the lowest tackling season in the entire sample.
-
-**Feedback**:
-Comparing the 2020 treatment year against an eight-year pooled baseline overstates the magnitude of the discrete shock. The data shows a pre-existing downward drift in tackling, reaching 61.2 by 2019. The 7.9% structural decline absorbs years of this baseline trend. The actual drop from the immediate pre-treatment year is significantly smaller. Present the explicit 2019 values in the table alongside the baseline mean to distinguish the discrete 2020 tactical compression shock from the long-term trend.
-
----
-
-### 16. Contradiction in causal interpretation
-
-**Status**: [Pending]
-
-**Quote**:
-> Third, and most broadly, the Tactical Compression findings illustrate how an extreme structural shock can dominate and statistically mask environmental pressure channels that may well operate under normal conditions. Our results establish that, in the specific and extraordinary context of the 2020 AFL hub season, behavioural shifts in game style were of sufficient magnitude to render any crowd-based umpire bias statistically undetectable.
-
-**Feedback**:
-The conclusion misunderstands the mechanics of multivariate regression. The empirical models isolate the independent effect of crowd removal by explicitly controlling for hub logistics and standardizing for game duration. If a multiple regression returns a null coefficient for the treatment, it indicates the variable has no independent effect. It does not suggest the effect was statistically masked by the control parameters. If the impact were genuinely masked, it would imply the separation strategy failed. State clearly that the isolated effect of crowd absence is indistinguishable from zero once tactical shifts are accommodated.
-
----
-
-### 17. Imprecise use of measurement error
-
-**Status**: [Pending]
-
-**Quote**:
-> First, we develop a novel continuous treatment metric—the **Expected Partisanship Index (EPI)**—to resolve the severe measurement error present in raw attendance figures.
-
-**Feedback**:
-The term measurement error technically applies to miscounted raw data. The core argument addresses construct validity. Total attendance fails to distinguish between neutral crowds and hostile partisan environments, making it a flawed proxy for crowd pressure. While measurement error can describe proxy deviations in strict econometric parlance, readers might assume you are questioning the accuracy of the gate counts. Adjust the phrasing to indicate that you are resolving a proxy failure rather than correcting corrupted venue data.
-
----
-
-### 18. Non-standard terminology for awarded free kicks
-
-**Status**: [Pending]
-
-**Quote**:
-> Variables include scored free kicks for and against each team, contested possessions, disposals, tackles, marks, marks inside 50, and clearances.
-
-**Feedback**:
-The phrase scored free kicks misaligns with standard Australian Rules Football terminology. Umpires award free kicks. Players do not score them. Readers unfamiliar with the sport might infer you are only counting penalty events that directly lead to points. Change the wording to specify awarded free kicks to ensure the methodology unambiguously covers all penalty events.
-
----
-
-### 19. Discrete nature of rest days variable
-
-**Status**: [Pending]
-
-**Quote**:
-> we engineer two new hub controls: `days_rest_diff`, a continuous measure of home rest days minus away rest days
-
-**Feedback**:
-The differential between opponent rest days derives from integer values. This makes it a discrete measure. Describing an integer-valued gap as continuous mischaracterizes the parameter. Update the text to identify the variable as discrete.
-
----
-
-### 20. Conflation of post-treatment bias and collider bias
-
-**Status**: [Pending]
-
-**Quote**:
-> While we explicitly note that conditioning on post-treatment variables invites collider bias—preventing us from claiming strict identification of total causal mediation—the extreme associative density of these covariates strongly reinforces our underlying thesis: physical gameplay dynamics are structurally correlated with the variance observed.
-
-**Feedback**:
-Conditioning on a post-treatment mediator introduces over-control bias by blocking the causal pathway. This is distinct from collider bias, which requires the mediator to act as a common effect of the treatment and an unobserved confounder. The terminology obscures the exact mechanism disrupting the mediation design. Replace the reference to collider bias with a note on post-treatment bias.
-
----
-
-### 21. Causal leap from mechanical bounds
-
-**Status**: [Pending]
-
-**Quote**:
-> Over 0.696 of that collapse remains entirely unexplained by simple mechanical duration limits, proving that tactical compression depressed play organically throughout the entire contest.
-
-**Feedback**:
-The mechanical bound calculation effectively dismisses the shorter game clock as the sole driver. It does not prove that tactical compression caused the remainder of the drop. The unexplained variance could arise from other concurrent shocks. The mathematical bound rejects one hypothesis but cannot confirm another. Soften the phrasing to state that the residual gap requires an organic behavioural explanation without prematurely declaring the tactical mechanism proven by this specific calculation.
+The introductory text categorizes all metrics in the table as nominal-time-normalised rates. Forward Efficiency is a dimensionless probability ratio of two events. Time-normalizing both the numerator and denominator mathematically cancels the time scalar. The metric is fundamentally independent of time. Adjust the introductory sentence to note that the table includes both time-normalised rates and dimensionless event efficiencies.
 
 ---

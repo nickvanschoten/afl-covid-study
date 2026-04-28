@@ -195,12 +195,12 @@ def _run_model2(panel: pd.DataFrame, label: str = "Model 2") -> dict:
     """Primary causal specification (Model 2) on a panel slice."""
     p = panel.copy()
     required = ["home_fk_diff", "deficit_ratio", "epi_z",
-                "deficit_x_epi", "days_rest_diff", "home_interstate_2020"]
+                "deficit_x_epi", "days_rest_diff", "relative_interstate_dis"]
     p = p.dropna(subset=required)
     try:
         m = PanelOLS.from_formula(
             "home_fk_diff ~ deficit_ratio + epi_z + deficit_x_epi "
-            "+ days_rest_diff + home_interstate_2020 "
+            "+ days_rest_diff + relative_interstate_dis "
             "+ EntityEffects + TimeEffects",
             data=p, drop_absorbed=True,
         )
@@ -254,7 +254,7 @@ def challenge1_event_study_fix(df: pd.DataFrame, panel: pd.DataFrame) -> None:
     interaction_terms = " + ".join(f"epi_x_{yr}" for yr in non_ref_years)
     formula_es = (
         f"home_fk_diff ~ epi_z + {interaction_terms} "
-        f"+ days_rest_diff + home_interstate_2020 "
+        f"+ days_rest_diff + relative_interstate_dis "
         f"+ EntityEffects + TimeEffects"
     )
     p_es_clean = p_es.dropna(subset=["home_fk_diff", "epi_z", "days_rest_diff"])
@@ -300,13 +300,13 @@ def challenge1_event_study_fix(df: pd.DataFrame, panel: pd.DataFrame) -> None:
     )
     p2 = p2.set_index(["matchup_directed_id", "season"])
     required_dt = ["home_fk_diff", "deficit_ratio", "epi_z", "deficit_x_epi",
-                   "days_rest_diff", "home_interstate_2020", "season_within"]
+                   "days_rest_diff", "relative_interstate_dis", "season_within"]
     p2_clean = p2.dropna(subset=required_dt)
 
     try:
         m_dt = PanelOLS.from_formula(
             "home_fk_diff ~ deficit_ratio + epi_z + deficit_x_epi "
-            "+ days_rest_diff + home_interstate_2020 "
+            "+ days_rest_diff + relative_interstate_dis "
             "+ season_within "
             "+ EntityEffects + TimeEffects",
             data=p2_clean, drop_absorbed=True,
@@ -349,14 +349,14 @@ def challenge2_fatigue_epi_interactions(panel: pd.DataFrame) -> None:
 
     p = panel.copy()
     required = ["home_fk_diff", "deficit_ratio", "epi_z", "deficit_x_epi",
-                "days_rest_diff", "home_interstate_2020",
+                "days_rest_diff", "relative_interstate_dis",
                 "cp_diff", "kicks_diff", "clearance_diff"]
     p = p.dropna(subset=required)
 
     # Pre-compute interaction terms (not in panel by default)
     p2 = p.copy().reset_index()
     p2["rest_x_epi"]       = p2["days_rest_diff"]     * p2["epi_z"]
-    p2["interstate_x_epi"] = p2["home_interstate_2020"] * p2["epi_z"]
+    p2["interstate_x_epi"] = p2["relative_interstate_dis"] * p2["epi_z"]
     p2 = p2.set_index(["matchup_directed_id", "season"])
 
     # --- Model 3 extended: Hub Robustness + Fatigue×EPI interactions ---
@@ -365,13 +365,13 @@ def challenge2_fatigue_epi_interactions(panel: pd.DataFrame) -> None:
     try:
         m3e = PanelOLS.from_formula(
             "home_fk_diff ~ deficit_ratio + epi_z + deficit_x_epi "
-            "+ days_rest_diff + home_interstate_2020 "
+            "+ days_rest_diff + relative_interstate_dis "
             "+ rest_x_epi + interstate_x_epi "
             "+ EntityEffects + TimeEffects",
             data=p2, drop_absorbed=True,
         )
         res3e = m3e.fit(cov_type="clustered", cluster_entity=True, cluster_time=True)
-        key_params = ["deficit_x_epi", "days_rest_diff", "home_interstate_2020",
+        key_params = ["deficit_x_epi", "days_rest_diff", "relative_interstate_dis",
                       "rest_x_epi", "interstate_x_epi"]
         print(f"  {'Parameter':<25}  {'Coef':>8}  {'SE':>7}  {'P-val':>9}  Sig")
         print(f"  {'-'*55}")
@@ -401,7 +401,7 @@ def challenge2_fatigue_epi_interactions(panel: pd.DataFrame) -> None:
     try:
         m5e = PanelOLS.from_formula(
             "home_fk_diff ~ deficit_x_epi "
-            "+ days_rest_diff + home_interstate_2020 "
+            "+ days_rest_diff + relative_interstate_dis "
             "+ rest_x_epi + interstate_x_epi "
             "+ cp_diff + kicks_diff + clearance_diff "
             "+ EntityEffects + TimeEffects",

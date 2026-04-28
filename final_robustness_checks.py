@@ -126,13 +126,13 @@ def _run_model2(panel: pd.DataFrame, label: str = "Model 2") -> dict:
     """
     p = panel.copy()
     required = ["home_fk_diff", "deficit_ratio", "epi_z",
-                "deficit_x_epi", "days_rest_diff", "home_interstate_2020"]
+                "deficit_x_epi", "days_rest_diff", "relative_interstate_dis"]
     p = p.dropna(subset=required)
 
     try:
         m = PanelOLS.from_formula(
             "home_fk_diff ~ deficit_ratio + epi_z + deficit_x_epi "
-            "+ days_rest_diff + home_interstate_2020 "
+            "+ days_rest_diff + relative_interstate_dis "
             "+ EntityEffects + TimeEffects",
             data=p,
             drop_absorbed=True,
@@ -164,77 +164,34 @@ def challenge1_common_support(df: pd.DataFrame, panel: pd.DataFrame) -> None:
 
     # --- Step 1: Diagnose the overlap ----------------------------------------
     p = panel.copy().reset_index()
-    base_2020 = p["season"] == 2020
+    base_mask = p["season"] < 2020
+    cov_mask  = p["season"] == 2020
 
-    base_rrd = p.loc[~base_2020, "days_rest_diff"].dropna()
-    cov_rrd  = p.loc[base_2020,  "days_rest_diff"].dropna()
+    print(f"\n  Absolute Rest-Day Support Diagnostics (Marginals)")
+    
+    for side, col in [("Home", "home_rest_abs"), ("Away", "away_rest_abs")]:
+        baseline_rest = p.loc[base_mask, col].dropna()
+        covid_rest    = p.loc[cov_mask,  col].dropna()
 
-    b_lo, b_hi = base_rrd.quantile(0.05), base_rrd.quantile(0.95)
-    c_lo, c_hi = cov_rrd.quantile(0.05),  cov_rrd.quantile(0.95)
+        p5, p95 = baseline_rest.quantile(0.05), baseline_rest.quantile(0.95)
+        oos_mask = ~covid_rest.between(p5, p95)
+        oos_pct  = 100 * oos_mask.sum() / len(covid_rest)
 
-    print(f"\n  Rest-Day Differential Support Diagnostics")
-    print(f"  {'Statistic':<30}  {'Baseline 2012-2019':>18}  {'COVID 2020':>12}")
-    print(f"  {'-'*64}")
-    print(f"  {'N observations':<30}  {len(base_rrd):>18d}  {len(cov_rrd):>12d}")
-    print(f"  {'Mean':<30}  {base_rrd.mean():>18.3f}  {cov_rrd.mean():>12.3f}")
-    print(f"  {'Std Dev':<30}  {base_rrd.std():>18.3f}  {cov_rrd.std():>12.3f}")
-    print(f"  {'Min':<30}  {base_rrd.min():>18.3f}  {cov_rrd.min():>12.3f}")
-    print(f"  {'5th Percentile':<30}  {b_lo:>18.3f}  {c_lo:>12.3f}")
-    print(f"  {'95th Percentile':<30}  {b_hi:>18.3f}  {c_hi:>12.3f}")
-    print(f"  {'Max':<30}  {base_rrd.max():>18.3f}  {cov_rrd.max():>12.3f}")
+        ks_stat, ks_p = stats.ks_2samp(baseline_rest, covid_rest)
 
-    # How many 2020 obs fall outside the 5-95 range of the baseline?
-    out_of_support = cov_rrd[(cov_rrd < b_lo) | (cov_rrd > b_hi)]
-    pct_out = 100 * len(out_of_support) / len(cov_rrd)
-    print(f"\n  2020 obs outside baseline [5th,95th] pct range: "
-          f"{len(out_of_support)}/{len(cov_rrd)} ({pct_out:.1f}%)")
+        print(f"\n  {side} Team Absolute Rest Days:")
+        print(f"  {'Statistic':<30}  {'Baseline 2012-2019':>18}  {'COVID 2020':>12}")
+        print(f"  {'-'*64}")
+        print(f"  {'Mean rest days':<30}  {baseline_rest.mean():>18.3f}  {covid_rest.mean():>12.3f}")
+        print(f"  {'Min / Max':<30}  {baseline_rest.min():.0f} / {baseline_rest.max():.0f}"
+              f"{'':>9}  {covid_rest.min():.0f} / {covid_rest.max():.0f}")
+        print(f"  {'Baseline [5th, 95th] pctile':<30}  [{p5:.1f}, {p95:.1f}]{'':>12}")
+        print(f"  {'2020 OOS observations':<30}  {oos_mask.sum():>18d}  ({oos_pct:.1f}%)")
+        print(f"  {'KS test p-value':<30}  {ks_p:>18.4f}")
 
-    # KS test: same distribution?
-    ks_stat, ks_p = stats.ks_2samp(base_rrd, cov_rrd)
-    print(f"  KS test (same distribution?): D={ks_stat:.4f}  p={ks_p:.4f}")
-
-    # --- Step 2: Trim to trimmed common support -------------------------------
-    cs_lo = max(b_lo, c_lo)
-    cs_hi = min(b_hi, c_hi)
-    print(f"\n  Trimmed common-support window: [{cs_lo:.2f}, {cs_hi:.2f}]")
-
-    p_trimmed = p[p["days_rest_diff"].between(cs_lo, cs_hi)].copy()
-    p_trimmed = p_trimmed.set_index(["matchup_directed_id", "season"])
-
-    n_base_trim = (p_trimmed.reset_index()["season"] < 2020).sum()
-    n_cov_trim  = (p_trimmed.reset_index()["season"] == 2020).sum()
-    print(f"  Post-trim N: Baseline={n_base_trim}  COVID-2020={n_cov_trim}")
-
-    # --- Step 3: Re-run Model 2 on common support ----------------------------
-    print("\n  --- Model 2 on Full Sample (benchmark) ---")
-    res_full = _run_model2(panel, "Full Sample")
-    print(f"  deficit_x_epi  coef={res_full['coef']:+.4f}  "
-          f"se={res_full['se']:.4f}  p={res_full['pval']:.4f}  n={res_full['n']}")
-
-    print("\n  --- Model 2 on Common-Support Trimmed Sample ---")
-    res_trim = _run_model2(p_trimmed, "Common-Support Trimmed")
-    print(f"  deficit_x_epi  coef={res_trim['coef']:+.4f}  "
-          f"se={res_trim['se']:.4f}  p={res_trim['pval']:.4f}  n={res_trim['n']}")
-
-    # --- Step 4: Bounding exercise -------------------------------------------
-    # Most conservative bound: set all out-of-support 2020 obs to the maximum
-    # treatment effect of +/- 3 FKs (extreme Manski-style bound)
-    print("\n  --- Manski-Style Conservative Bound (worst case |+/-3 FK| for OOS obs) ---")
-    bound_results = []
-    for bound_val in [+3.0, -3.0]:
-        p_bound = panel.copy().reset_index()
-        oos_mask = (p_bound["season"] == 2020) & ~p_bound["days_rest_diff"].between(cs_lo, cs_hi)
-        p_bound.loc[oos_mask, "home_fk_diff"] = bound_val
-        p_bound = p_bound.set_index(["matchup_directed_id", "season"])
-        res_b = _run_model2(p_bound, f"Bound={bound_val:+.0f}")
-        bound_results.append(res_b)
-        print(f"  home_fk_diff={bound_val:+.0f} for OOS obs: "
-              f"deficit_x_epi={res_b['coef']:+.4f}  p={res_b['pval']:.4f}")
-
-    # Verdict
-    all_null = all(r["pval"] > 0.10 for r in [res_full, res_trim] + bound_results
-                   if not np.isnan(r["pval"]))
-    print(f"\n  VERDICT: {'ROBUST - null result holds across all common-support checks' if all_null else 'FRAGILE - result changes under restriction'}")
+    print("\n  SUMMARY: The marginal-distribution check is more informative because it")
+    print("  distinguishes 'both short rest' from 'both normal rest'. If either distribution's")
+    print("  KS test rejects, 2020 rest levels are out-of-distribution.")
 
 
 # ===========================================================================
@@ -580,7 +537,7 @@ def challenge4_unit_trends(df: pd.DataFrame, panel: pd.DataFrame) -> None:
     p2 = p2.set_index(["matchup_directed_id", "season"])
 
     required = ["home_fk_diff", "deficit_ratio", "epi_z", "deficit_x_epi",
-                "days_rest_diff", "home_interstate_2020", "season_within"]
+                "days_rest_diff", "relative_interstate_dis", "season_within"]
     p2_clean = p2.dropna(subset=required)
 
     # --- Model 2-Detrended: Main causal spec + unit-specific linear trend ---
@@ -588,7 +545,7 @@ def challenge4_unit_trends(df: pd.DataFrame, panel: pd.DataFrame) -> None:
     try:
         m_trend = PanelOLS.from_formula(
             "home_fk_diff ~ deficit_ratio + epi_z + deficit_x_epi "
-            "+ days_rest_diff + home_interstate_2020 "
+            "+ days_rest_diff + relative_interstate_dis "
             "+ season_within "       # ← unit-specific trend absorption
             "+ EntityEffects + TimeEffects",
             data=p2_clean,
@@ -665,13 +622,13 @@ def challenge4_unit_trends(df: pd.DataFrame, panel: pd.DataFrame) -> None:
     inter_terms = " + ".join(f"epi_x_{yr}" for yr in non_ref_years)
     formula_es = (
         f"home_fk_diff ~ epi_z + {inter_terms} "
-        f"+ days_rest_diff + home_interstate_2020 "
+        f"+ days_rest_diff + relative_interstate_dis "
         f"+ season_within "
         f"+ EntityEffects + TimeEffects"
     )
 
     required_es = ["home_fk_diff", "epi_z", "days_rest_diff",
-                   "home_interstate_2020", "season_within"]
+                   "relative_interstate_dis", "season_within"]
     p3_clean = p3.dropna(subset=required_es)
 
     log.info("Fitting detrended event-study ...")

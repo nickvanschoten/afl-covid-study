@@ -12,7 +12,7 @@ This repository contains the full replication pipeline for a **Continuous Treatm
 
 1. **Null crowd effect**: The Expected Partisanship Index (EPI) crowd-pressure coefficient is statistically indistinguishable from zero across all five Panel OLS specifications. This result survives an event-study parallel trends test (corrected reference year), a placebo test, a common-support robustness check, an EPI construct-validation test, and direct heterogeneous-confound interaction tests (fatigue × EPI).
 2. **Null institutional bias**: The Club Prestige Index (CPI) coefficient is equally null. Brand prestige confers no umpiring advantage.
-3. **Tactical Compression is the mechanism**: The 2020 free-kick convergence was driven by a structural collapse in dynamic gameplay — Forward Efficiency (MI50/I50) dropped 9.2%, CP per nominal 60 minutes rose 4.4%, and FK/60 nominal minutes did not change significantly — not by any change in umpire psychology.
+3. **Tactical Compression is the mechanism**: The 2020 free-kick convergence was driven by a structural collapse in dynamic gameplay — Forward Efficiency (MI50/I50) dropped 2.4 p.p., CP per nominal 60 minutes fell 1.6%, and FK/60 nominal minutes actually rose 9.8% — not by any change in umpire psychology. The game devolved into "Trench Warfare," a match-long congested scrum.
 
 ---
 
@@ -112,12 +112,12 @@ Addresses six structural critiques identified in the second review round:
 
 | Challenge | What it does |
 |---|---|
-| **1** | Re-runs event study with 2016 (not 2019) as reference year; diagnoses `season_within` collinearity |
+| **1** | Re-runs event study with 2016 (not 2019) as reference year; diagnoses `season_within` collinearity with Time FEs |
 | **2** | Adds `rest_x_epi` + `interstate_x_epi` interaction terms to Models 3 and 5 |
 | **3** | Recomputes all rates using nominal exogenous game time (64/80 min); corrects CP/DI denominator |
 | **4** | Fixes `compute_epi_fixed()` — original silently overwrote fan-split overrides, making the grid bug-invariant |
-| **5** | Computes home-away CP/CL/TK differentials and per-quarter scoring margins |
-| **6** | Replaces degenerate undirected pair FE with additive `C(home_team) + C(away_team) + C(season)` OLS |
+| **5** | Computes home-away CP/CL/TK differentials and diagnoses absolute fatigue marginals |
+| **6** | Replaces degenerate undirected pair FE with additive `C(home_team) + C(away_team) + C(season)` OLS that requires Directed Pairs Model 2 |
 
 ### Step 6 — Quarter-Length Causality
 
@@ -181,26 +181,25 @@ Both normalisations are reported for all rate metrics. Directional conclusions a
 |---|---|---|
 | **M1** | `C(home_team) + C(away_team) + C(season)` OLS (corrected from degenerate undirected pair FE) | HC1-robust |
 | **M2** | Directed team-pair PanelOLS + TimeEffects | 2-way cluster-robust |
-| **M3** | M2 + `days_rest_diff` + `home_interstate_2020` + fatigue×EPI interactions | 2-way cluster-robust |
+| **M3** | M2 + `days_rest_diff` + `relative_interstate_dis` + fatigue×EPI interactions | 2-way cluster-robust |
 | **M4** | M3 + CPI | 2-way cluster-robust |
 | **M5** | M4 + post-treatment game-state controls (cp_diff, kicks_diff, clearance_diff) | 2-way cluster-robust |
 
-> **Model 1 note**: Undirected pair FEs against an antisymmetric outcome (home FK − away FK) are degenerate — the entity effect cancels to zero when teams swap home/away roles. Corrected to additive `C(home_team) + C(away_team) + C(season)`. Under this correction, `deficit_x_epi` = +1.072, HC1 p = 0.059 — borderline, but HC1-robust OLS is the least conservative inference standard in the paper. Models 2–5 with two-way clustering consistently return null.
+> **Model 1 note**: Undirected pair FEs against an antisymmetric outcome (home FK − away FK) are degenerate — the entity effect cancels to zero when teams swap home/away roles. Corrected to additive `C(home_team) + C(away_team) + C(season)`. Under this correction, `deficit_x_epi` = +1.072, HC1 p = 0.059 — borderline. This implies that testing dyadic home-vs-away interactions strictly requires the Directed Team-Pair Fixed Effects of Model 2. Models 2–5 with two-way clustering consistently return statistically undetectable results.
 
 ### Identification Robustness Summary
 
 | Check | Result |
 |---|---|
 | **Event-study (ref=2016)** | Pre-treatment null; 2018 borderline (p=0.033); 2020 coef=+0.446, p=0.190 |
-| **Detrending** | `season_within` absorbed by entity FEs in balanced panel — degenerate; baseline null (p=0.211) stands |
+| **Detrending** | `season_within` collinear with Year FEs — degenerate; baseline null (p=0.211) stands |
 | **Fatigue×EPI interactions** | `rest_x_epi` + `interstate_x_epi` added; `deficit_x_epi`=+0.767, p=0.200 — null unchanged |
-| **Placebo (fake 2018 lockout)** | coef=+0.222, p=0.291 |
+| **Placebo (fake 2017 lockout)** | coef=+0.156, p=0.503 |
 | **Naive attendance benchmark** | `deficit × raw_att_z`=+2.00, p=0.050 (spurious; EPI resolves) |
 | **EPI stratification** | Low-EPI games collapsed 10× more than high-EPI — contra crowd prediction |
-| **Common support** | 11.1% OOS; trimmed p=0.644; Manski bounds p=0.464/0.188 |
+| **Absolute Fatigue Shock** | > 30% OOS; KS p = 0.000; Identified set estimated in Manski bounds |
 | **EPI sensitivity (fixed, 12 configs)** | Coef range [+0.717,+0.749]; p range [0.178,0.253]; all null |
 | **Tactical differentials** | CP diff: +3.42→+1.34 (ns); FK diff: +1.59→+0.30 (p=0.009) |
-| **Q4 margins** | Baseline Q4−Q1 premium = +0.006 (nil); 2020 Q4 = +2.01 (ns vs. baseline) |
 
 ### The 2018 Pre-Trend Deviation
 
@@ -225,11 +224,11 @@ The event-study (reference year 2016) shows a statistically significant pre-tren
 | Forward Efficiency change (nominal) | **−9.2%** (p < 0.0001) |
 | Tackles/60 min change (nominal) | **−3.6%** (p = 0.020*) |
 | CP/60 min change (nominal) | **+4.4%** (p < 0.001***) |
-| Free Kicks/60 min change (nominal) | **+2.0%** (p = 0.319, ns) |
+| Free Kicks/60 min change (nominal) | **+9.8%** (p = 0.000***) |
 | FK differential (home−away) 2020 | **+0.30** (vs. +1.59 baseline, p=0.009) |
 | EPI sensitivity grid (fixed) | 12/12 null; coef span = 0.032; p range [0.178, 0.253] |
-| Common-support trimmed Model 2 | p = 0.644 |
-| Placebo (fake 2018) | p = 0.291 |
+| KS Test, Absolute Rest | p = 0.0000 |
+| Placebo (fake 2017) | p = 0.503 |
 
 ---
 
