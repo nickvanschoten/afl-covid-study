@@ -220,8 +220,8 @@ The event-study (reference year 2016) shows a statistically significant pre-tren
 | Event study 2020 coef (ref=2016) | **+0.446**, p = 0.190 (null) |
 | Nominal game time ratio | **0.8000** (64/80 min) |
 | Actual game time ratio | **0.8374** (101.8/121.5 min) |
-| Mechanical bound (k=2 fatigue) | −0.434 of the 1.130 drop |
-| Residual unexplained by duration | **0.696** |
+| Mechanical bound (k=2 fatigue) | −0.503 of the 1.130 drop |
+| Residual unexplained by duration | **0.627** |
 | Forward Efficiency change (nominal) | **−9.2%** (p < 0.0001) |
 | Tackles/60 min change (nominal) | **−3.6%** (p = 0.020*) |
 | CP/60 min change (nominal) | **+4.4%** (p < 0.001***) |

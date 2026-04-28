@@ -111,7 +111,7 @@ The fixed-effect structure does not manufacture false positives on a stable base
 
 The 2020 AFL season used 16-minute quarters instead of 20. That 4-minute reduction might seem like it mechanically explains the drop in free kicks. But it cannot explain the collapse in the *differential*. A shorter game reduces both home and away free kicks equally — it doesn't specifically erode the home team's share.
 
-And even on total volume, the maths only goes so far. The entire **1.130 free-kick** differential drop cannot be explained by shorter game time alone. An empirical bounds analysis shows that even if the removed 4 minutes of each quarter were *twice* as free-kick-dense as the remaining 16 minutes, the mechanical duration effect accounts for only **−0.434** of that 1.130. Over **0.696** of the convergence remains unexplained by shortening alone.
+And even on total volume, the maths only goes so far. The entire **1.130 free-kick** differential drop cannot be explained by shorter game time alone. An empirical bounds analysis shows that even if the removed 4 minutes of each quarter were *twice* as free-kick-dense as the remaining 16 minutes, the mechanical duration effect accounts for only **−0.503** of that 1.130. Over **0.627** of the convergence remains unexplained by shortening alone.
 
 ### Simultaneity Concern: Fixed with Nominal Denominators
 

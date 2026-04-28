@@ -77,7 +77,7 @@ For 2020 matches, `deficit_ratio` ≈ 1.0. For pre-2020 matches, `deficit_ratio`
 
 To test for institutional brand bias, we construct a **Club Prestige Index (CPI)** measuring whether umpires subconsciously favour historically prominent clubs. The CPI is computed annually for each club using three components:
 
-1. **Membership Anchor** (*mem_z*): The club's static average membership (2015–2019 window), z-scored within each season
+1. **Brand Anchor** (*att_z*): The club's rolling average home attendance in season t-1, z-scored within each season
 2. **Halo Effect** (*win_z*): The club's win percentage in season *t-1*, z-scored within each season
 3. **Primetime Allocation** (*prime_z*): The proportion of the club's games in season *t-1* scheduled on Thursday or Friday nights, z-scored within each season
 
@@ -179,7 +179,7 @@ Model 5's Associational Decomposition demonstrates that game-state differentials
 | Top 25% Most Hostile | +0.000 | −0.154 |
 | Bottom 25% Least Hostile | +0.000 | −1.638 |
 
-Both groups decline in 2020, but the Bottom 25% (Least Hostile) collapses by −1.638 residual free kicks against only −0.154 for the Top 25% (Most Hostile)—a 1.48-foul gap that directly contradicts the crowd-pressure prediction. If crowd removal drove the convergence, the most hostile matchups should have collapsed the most; instead they were the most stable. This is consistent with a global fatigue mechanism operating uniformly across matchup types.
+Both groups decline in 2020, but the Bottom 25% (Least Hostile) collapses by −1.638 residual free kicks against only −0.154 for the Top 25% (Most Hostile)—a 1.48-foul gap that directly contradicts the crowd-pressure prediction. If crowd removal drove the convergence, the most hostile matchups should have collapsed the most; instead they were the most stable. This is consistent with a global fatigue mechanism operating asymmetrically across matchup types.
 
 > **[Figure 5 Descriptor: A line chart titled "EPI Stratification: Mean Home FK Differential by Crowd Hostility Quartile." Two series run from 2012 to 2020: the Top 25% Most Hostile matchups and the Bottom 25% Least Hostile matchups. In 2020, the least-hostile series falls far below zero while the most-hostile series remains comparatively elevated—the opposite of what crowd-pressure causation predicts.]**
 
@@ -219,7 +219,7 @@ Under the corrected nominal denominator, the rate comparison is:
 
 The directional conclusions highlight a critical finding: FK/60 (nominal) implies umpire whistle density actually increased significantly. The apparent reduction in raw penalty volume was entirely an artefact of the shortened 64-minute structure, not increased referee leniency. Tackles fell slightly, and CP rates dropped slightly. The key analytical conclusion—that free-kick density per unit of scheduled play did not decline—fundamentally rewrites the naive mechanism narrative.
 
-Mechanical duration effects account for only −0.434 of the observed **1.130** differential drop (baseline +1.51 minus 2020 mean +0.38) even under a conservative non-linear fatigue assumption (k=2, double density in removed minutes). Over **0.696** of the collapse remains unexplained by duration mechanics, proving that tactical compression operated organically throughout the full contest.
+Mechanical duration effects account for only −0.503 of the observed **1.130** differential drop (baseline +1.51 minus 2020 mean +0.38) even under a conservative non-linear fatigue assumption (k=2, double density in removed minutes). Over **0.627** of the collapse remains unexplained by duration mechanics, proving that tactical compression operated organically throughout the full contest.
 
 ### 6.3 Quantitative Decomposition of Gameplay
 
@@ -295,7 +295,7 @@ The officials are not being swayed by the cheer squad in the data we can observe
 | **Rate Denominator** | Nominal exogenous game time (64 min / 80 min); actual elapsed time reported for comparison |
 | **CP Rate** | Corrected from endogenous CP/DI to CP per 60 nominal minutes |
 | **Game Time** | Actual: baseline 121.5 min, 2020 101.8 min, ratio 0.8374. Nominal: 80/64 min, ratio 0.8000 |
-| **Differential Drop** | Baseline +1.51 − 2020 +0.38 = **1.130**; mechanical bound (k=2) = −0.434; residual = 0.696 |
+| **Differential Drop** | Baseline +1.51 − 2020 +0.38 = **1.130**; mechanical bound (k=2) = −0.503; residual = 0.627 |
 | **Tactical Differentials** | CP diff +3.42→+1.34 (ns); CL diff +0.67→+0.33 (ns); FK diff +1.59→+0.30 (p=0.009) |
 | **Q4 Evidence** | Baseline Q4 − Q1 premium = +0.006 (nil); 2020 Q4 = +2.01 (not significantly different from baseline Q4 p=0.881) |
 | **CPI** | `(mem_z + lag_win_pct_z + lag_primetime_z) / 3`, within-season standardised, single t-1 lag |

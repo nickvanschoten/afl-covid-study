@@ -75,7 +75,7 @@ For 2020 matches, `deficit_ratio` ≈ 1.0 (complete crowd removal). For pre-2020
 
 To test for institutional brand bias, we construct a **Club Prestige Index (CPI)** measuring whether umpires subconsciously favour historically prominent clubs. The CPI is computed annually for each club using three components:
 
-1. **Membership Anchor** (*mem_z*): The club's static average membership (2015–2019 window), z-scored within each season
+1. **Brand Anchor** (*att_z*): The club's rolling average home attendance in season t-1, z-scored within each season
 2. **Halo Effect** (*win_z*): The club's win percentage in season *t-1* (a single one-period lag), z-scored within each season
 3. **Primetime Allocation** (*prime_z*): The proportion of the club's games in season *t-1* scheduled on Thursday or Friday nights—the AFL's designated marquee broadcast slots—z-scored within each season
 
@@ -177,7 +177,7 @@ Extending the regression via an Associational Decomposition (Model 5) demonstrat
 | Top 25% Most Hostile | +0.000 | −0.154 |
 | Bottom 25% Least Hostile | +0.000 | −1.638 |
 
-Once baseline team strength is removed, both groups drop below zero in 2020. Critically, the magnitude diverges sharply: the Bottom 25% (Least Hostile) collapses by −1.638 residual free kicks, while the Top 25% (Most Hostile) falls by only −0.154—a 1.48-foul gap that directly contradicts the crowd-pressure prediction. If crowd removal drove the convergence, the most hostile matchups should have shown the largest collapse; instead they showed the smallest. This pattern is consistent with a global fatigue mechanism operating across all matchup types, precisely as our regression null implies.
+Once baseline team strength is removed, both groups decline in 2020, but the Bottom 25% (Least Hostile) collapses by −1.638 residual free kicks against only −0.154 for the Top 25% (Most Hostile)—a 1.48-foul gap that directly contradicts the crowd-pressure prediction. If crowd removal drove the convergence, the most hostile matchups should have collapsed the most; instead they were the most stable. This is consistent with a global fatigue mechanism operating asymmetrically across matchup types, precisely as our regression null implies.
 ![Figure 5 - Descriptor](figures/figure_residualized_stratification.png)
 
 ### 5.2 Institutional Brand Bias: Also Null
@@ -214,7 +214,7 @@ A reviewer raised an important simultaneity concern: actual game time includes s
 
 The directional conclusions are unchanged under both normalisations: FK/60 does not decline significantly, tackle rates fall, and contested possession rates rise. The *magnitude* of the tackle decline differs (−3.6% nominal vs. −7.9% actual) because the actual denominator absorbs some pace-of-play endogeneity. A second reviewer concern—that Contested Possession Rate should not use disposals as the denominator (CP/DI, which is endogenous to game style)—is also addressed: the corrected CP/60 nominal rate confirms the upward shift observed under the disposal-based measure.
 
-The empirical ratio (0.8374) is noted for transparency but the primary normalisation throughout this paper uses the nominal exogenous denominator. Mechanical duration effects account for only −0.434 of the observed 1.130 differential drop even under a conservative non-linear fatigue assumption (k=2, where the final minutes of each quarter carry twice the free-kick density); over **0.696** of the collapse remains unexplained by duration mechanics alone.
+The empirical ratio (0.8374) is noted for transparency but the primary normalisation throughout this paper uses the nominal exogenous denominator. Mechanical duration effects account for only −0.503 of the observed 1.130 differential drop even under a conservative non-linear fatigue assumption (k=2, where the final minutes of each quarter carry twice the free-kick density); over **0.627** of the collapse remains unexplained by duration mechanics alone.
 
 ### 6.3 Quantitative Decomposition of Gameplay
 
@@ -292,7 +292,7 @@ The officials are not being swayed by the cheer squad in the data we can observe
 | **Rate Denominator** | Primary: nominal exogenous game time (64 min / 80 min); actual elapsed time reported for comparison |
 | **CP Rate** | Corrected from endogenous CP/DI (disposal-based) to CP per 60 nominal minutes; directional finding unchanged |
 | **Game Time** | Actual: baseline mean 121.5 min; 2020 mean 101.8 min; ratio 0.8374. Nominal: 80 min / 64 min; ratio 0.8000 |
-| **Differential Drop** | Baseline +1.51 − 2020 +0.38 = **1.130** free kicks; mechanical bound = −0.434 (k=2); residual = 0.696 |
+| **Differential Drop** | Baseline +1.51 − 2020 +0.38 = **1.130** free kicks; mechanical bound = −0.503 (k=2); residual = 0.627 |
 | **Tactical Differentials** | CP diff: +3.42 → +1.34 (ns); CL diff: +0.67 → +0.33 (ns); FK diff: +1.59 → +0.30 (p = 0.009) |
 | **Q4 Evidence** | Baseline Q4 − Q1 premium = +0.006 (nil); 2020 Q4 scoring margin = +2.01 (not significantly different from baseline) |
 | **CPI** | `(mem_z + lag_win_pct_z + lag_primetime_z) / 3`, within-season standardised, single t-1 lag |

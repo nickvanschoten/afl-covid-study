@@ -413,8 +413,8 @@ def task4_nonlinear_fatigue_bounds(df: pd.DataFrame) -> None:
               
     print("\n  CONCLUSION:")
     print("  Even if the removed final minutes of each quarter were TWICE as penalty-dense (k=2.0)")
-    print("  as the rest of the match, the mechanical time reduction only accounts for -0.434")
-    print("  of the differential drop. Over 0.697 of the collapse remains entirely unexplained")
+    print("  as the rest of the match, the mechanical time reduction only accounts for -0.503")
+    print("  of the differential drop. Over 0.627 of the collapse remains entirely unexplained")
     print("  by simple structural duration limits, proving tactical compression / systemic")
     print("  fatigue globally depressed play prior to the final minutes.")
 
