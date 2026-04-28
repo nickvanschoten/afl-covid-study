@@ -1,4 +1,4 @@
-# The Ghost Town Effect: Causal Inference, Umpire Bias, and Tactical Compression in the Australian Football League
+<img width="2042" height="1612" alt="figure_tackle_rate_ts" src="https://github.com/user-attachments/assets/22b85512-d280-4eeb-9568-c6f07c26ee0b" /># The Ghost Town Effect: Causal Inference, Umpire Bias, and Tactical Compression in the Australian Football League
 
 ## 1. Introduction
 
@@ -126,7 +126,7 @@ This formulation is appropriate for a continuous treatment design. It requires t
 
 All pre-treatment coefficients save one are statistically indistinguishable from zero under two-way clustering. The 2018 deviation (p = 0.033) persists, confirming it reflects a genuine structural event—most plausibly the AFL's 2018 mid-season rule changes to game flow—rather than an artefact of the reference year choice. The 2020 treatment coefficient is emphatically null at p = 0.190.
 
-> **[Figure 3 Descriptor: An event-study plot titled "Parallel Trends Validation: EPI × Season Interactions (reference year: 2016)." Blue circles represent pre-treatment seasons. All pre-treatment point estimates are close to zero with overlapping confidence intervals, save the 2018 year which is borderline significant. The 2020 treatment coefficient is positive but the 95% CI crosses zero. A dashed horizontal zero line demarcates the pre- and post-treatment periods.]**
+<img width="2065" height="943" alt="figure_event_study" src="https://github.com/user-attachments/assets/152212dd-622e-4cad-9dfe-274ea25a5d2e" />
 
 To rigorously assess whether the 2018 coefficient (p = 0.033) threatens identification, we attempted to augment the primary specification with unit-specific linear time trends via a within-entity centred season index (`season_within`). However, diagnostic testing confirmed that in this balanced panel structure—where each matchup entity appears exactly once per season—`season_within` is perfectly collinear with the Year Fixed Effects (Time FEs) and is absorbed by `drop_absorbed=True`. This is a structural property of the data generating process, not a software artefact: the year-mean projection spans the within-trend exactly.
 
@@ -154,7 +154,7 @@ A structural note on Model 1: an earlier specification employed *undirected* mat
 - **Model 4**: Brand Bias Baseline (Directed Team-Pair FEs + CPI + hub controls)
 - **Model 5**: Associational Decomposition (Directed FEs + hub controls + endogenous post-treatment game-state controls)
 
-> **[Figure 4 Descriptor: A coefficient forest plot charting parameter estimates with cluster-robust 95% confidence intervals across all five Panel OLS model specifications. Models 1–4 report causal parameter estimates; Model 5 reports associational estimates, as its post-treatment game-state controls (cp_diff, kicks_diff, clearance_diff) introduce collider bias. The "deficit_x_epi" confidence intervals overlap zero in Model 2–5. Model 1 shows a positive point estimate with a CI that touches but does not clearly exclude zero under HC1-robust inference.]**
+<img width="2845" height="906" alt="figure_coefficient_forest" src="https://github.com/user-attachments/assets/a794cdf8-b5e3-40ef-8fb5-ebb27eed13c4" />
 
 ---
 
@@ -178,7 +178,8 @@ Extending the regression via an Associational Decomposition (Model 5) demonstrat
 | Bottom 25% Least Hostile | +0.000 | −1.638 |
 
 Once baseline team strength is removed, both groups decline in 2020, but the Bottom 25% (Least Hostile) collapses by −1.638 residual free kicks against only −0.154 for the Top 25% (Most Hostile)—a 1.48-foul gap that directly contradicts the crowd-pressure prediction. If crowd removal drove the convergence, the most hostile matchups should have collapsed the most; instead they were the most stable. This is consistent with a global fatigue mechanism operating asymmetrically across matchup types, precisely as our regression null implies.
-![Figure 5 - Descriptor](figures/figure_residualized_stratification.png)
+
+<img width="2064" height="940" alt="figure_epi_stratification" src="https://github.com/user-attachments/assets/fb59f63b-a019-41f0-9046-32be6a6000cf" />
 
 ### 5.2 Institutional Brand Bias: Also Null
 
@@ -252,8 +253,10 @@ The CP, clearance, and tackle differentials all narrow toward zero in 2020, cons
 **Quarter-Level Evidence.** Reviewing within-game dynamics, we parse per-quarter scoring margins from cached HTML for all 1,736 matches. In the baseline era, per-quarter home scoring margins are broadly uniform. The home advantage is distributed across the full contest, consistent with a structural territorial dominance rather than a narrowly concentrated Q4 surge.
 
 This confirms that the free-kick differential convergence is distinct from the scoring margin channel. The mechanism is more fundamental: contest dynamics across the whole match were structurally compressed into neutral scrums by democratised fatigue, flattening the wide-open positional conditions that generate FK asymmetry.
-![Figure 6 - Descriptor](figures/figure_tackle_rate_ts.png)
-![Figure 7 - Descriptor](figures/figure_trench_warfare.png)
+
+<img width="2042" height="1612" alt="figure_tackle_rate_ts" src="https://github.com/user-attachments/assets/15857b5a-4114-4d59-9da7-8a32a9966ad9" />
+
+<img width="2076" height="1532" alt="figure_trench_warfare" src="https://github.com/user-attachments/assets/e6910a7c-7c78-4f8a-947d-27b1684edc47" />
 
 ---
 
